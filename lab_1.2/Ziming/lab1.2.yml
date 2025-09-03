@@ -1,0 +1,73 @@
+# SI413 Lab 1.2: Interpreter for Just Strings language
+
+your_name: Ziming HUang 
+
+your_alpha: 262940
+
+used_ai: Y # remember to turn in an aichat.md file as well
+
+# leave this as NONE for your initial submission
+changes_on_resubmit: |
+    NONE
+
+
+# Task 1
+
+language_name: DRAMAQUEEN
+
+
+# Task 2
+
+example_program: |    
+    shhh This is an testing program
+    HEAR_YE(   ~ I am printing normally ~   )
+    HEAR_YE( ~Hi I can print ~  ~Hi UNIFY ~ and concatenated ~) shhh inline shhh
+    HEAR_YE( ~ You said:  ~ UNIFY GIVE_ME)
+
+    shhh multi
+    line
+    comment
+    shhh
+
+    HEAR_YE(~ reversed:  ~ UNIFY REVERTERE(GIVE_ME))
+    HEAR_YE(~! doubly reversed:  ~! UNIFY REVERETERE(REVERETERE(~ abc ~)) UNIFY ~ . ~)
+
+
+example_input_1: |
+    hello
+    hi
+
+example_output_1: |
+    I am printing normally
+    I can print ~ and concatenated
+    hello
+    You said: hello
+    hi
+    reversed: ih
+    doubly reversed: abc.
+
+example_input_2: |
+    !!!
+    ()
+
+example_output_2: |
+    I am printing normally
+    I can print ~ and concatenated
+    !!!
+    You said: !!!
+    ()
+    reversed: )(
+    doubly reversed: abc.
+
+# Task 4
+
+reviewer_for: Ziming Huang
+
+reviewed_by: Tucker Smith
+
+review_passed: Y
+
+reviewer_comments: <
+    I like that you have a function to parse the expression!
+    The test case works. My recommendation is to make different
+    methods for each command. Good work!

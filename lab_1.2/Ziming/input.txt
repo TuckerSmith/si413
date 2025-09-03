@@ -1,0 +1,12 @@
+shhh This is an testing program
+HEAR_YE(   ~ I am printing normally ~   )
+HEAR_YE( ~Hi I can print ~  ~Hi UNIFY ~ and concatenated ~) shhh inline shhh
+HEAR_YE( ~ You said:  ~ UNIFY GIVE_ME)
+
+shhh multi
+line
+comment
+shhh
+
+HEAR_YE(~ reversed:  ~ UNIFY REVERTERE(GIVE_ME))
+HEAR_YE(~! doubly reversed:  ~! UNIFY REVERETERE(REVERETERE(~ abc ~)) UNIFY ~ . ~)

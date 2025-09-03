@@ -1,0 +1,72 @@
+# SI413 Lab 1.2: Interpreter for Just Strings language
+
+your_name: Austin Benigni
+
+your_alpha: 260456
+
+used_ai: Y # remember to turn in an aichat.md file as well
+
+# leave this as NONE for your initial submission
+changes_on_resubmit: |
+    NONE
+
+
+# Task 1
+
+language_name: DRAMAQUEEN
+
+
+# Task 2
+
+example_program: |
+    shhh This is a simple program in the DRAMA QUEEN language shhh
+    shhh HEAR_YE() serves as a call to print the enclosed expression shhh
+    HEAR_YE(~ I am a DRAMATIC LANGUAGE ~)    
+
+    HEAR_YE(REVERTERE(GIVE_ME))             shhh GIVE_ME takes a single line of text from the console as a string. REVERTERE reverses a string given to it shhh
+
+    shhh In order to concatenate strings you use the UNIFY operator as shown below
+    HEAR_YE(~ I will be as DRAMATIC~ UNIFY ~ ~ UNIFY ~as I WANT ~)
+
+    shhh Should you like to print a ~, all you have to do is join any combination of capital letters to the opening tilde as well as the ending tilde. 
+    shhh Now any tilde on the inside can be printed shhh
+    HEAR_YE(~APPLE I'd like to print a ~ thank you very much. ~APPLE)
+
+example_input_1: |
+    hello
+
+example_output_1: |
+    I am a DRAMATIC LANGUAGE
+    olleh
+    I will be as DRAMATIC as I WANT
+    I'd like to print a ~ thank you very much.
+
+example_input_2: |
+    That seems like a bit much
+
+example_output_2: |
+    I am a DRAMATIC LANGUAGE
+    hcum tib a ekil smees tahT
+    I will be as DRAMATIC as I WANT
+    I'd like to print a ~ thank you very much.
+
+
+# Task 4
+
+reviewer_for: Austin Benigni
+
+reviewed_by: Tucker Smith
+
+review_passed: N
+
+reviewer_comments: <
+    * HEAR_YE works!
+    * shhh works!
+    * UNIFY works!
+    * REVERTERE works!
+
+    * The full test cases doesn't work. I think 
+    it is a problem with the UNIFY line. Fix that 
+    and it's perfect.
+    
+    * Good work!

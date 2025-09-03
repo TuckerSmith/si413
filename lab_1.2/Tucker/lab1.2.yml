@@ -1,0 +1,45 @@
+# SI413 Lab 1.2: Interpreter for a Just Strings language
+
+your_name: Tucker Smith 
+
+your_alpha: 265922
+
+used_ai: Y # remember to turn in an aichat.md file as well
+
+# leave this as NONE for your initial submission
+changes_on_resubmit: |
+    NONE
+
+
+# Task 1
+
+language_name: DRAMAQUEEN
+
+
+# Task 2
+
+example_program: |    
+    
+
+example_input_1: |
+    
+
+example_output_1: |
+    
+
+example_input_2: |
+    
+
+example_output_2: |
+    
+
+# Task 4
+
+reviewer_for: Tucker Smith
+
+reviewed_by: BLAH BLAH BLAH
+
+review_passed: BLAH BLAH BLAH
+
+reviewer_comments: <
+    BLAH BLAH BLAH

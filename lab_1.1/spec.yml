@@ -1,0 +1,106 @@
+# SI413 Lab 1.1: Spec for Just Strings language
+
+your_name: Tucker Smith
+
+your_alpha: 265922
+
+used_ai: Y # remember to turn in an aichat.md file as well
+
+
+# Task 1
+
+language_name: ShippyLanguage
+
+
+# Task 2
+
+example_program: |
+    1MC<"What's our heading? "!
+    receive<heading>!   log getting info from our watchstanders!
+
+    1MC<lash<heading/"?">!
+    1MC<"We need the reverse of that!">!
+
+    1MC<lash<"Helm, come to course "/back_signal<heading>>!
+
+example_input_1: |                                            
+    470
+
+example_output_1: |
+    What's our heading? 470
+    470?
+    We need the reverse of that!
+    Helm, come to course 074
+
+example_input_2: |
+    What's our heading? Hello World
+    Hellow World?
+    We need the reverse of that!
+    Helm, come to course dlroW wolleH
+
+example_output_2: |
+    In 500 yards; 1MC "hello world!" aye!
+    [ship travels 500 yards]
+    hello world!
+
+# Task 3
+
+language_syntax: |
+    Standard shipboard command syntax, followed by an '!' for extra Hooyah.
+
+    Literals: 
+        Strings, referred to as signals, will be expressed using quotation marks. Limited to 256 characters due to the KISS design principle. If you have more to say, keep it to yourself.
+
+    Payloads: Payloads are command arguments
+    
+    
+    Commands: Commands will be expressed in the format "command<payload1/payload2>"
+        
+        receive - read from stdin
+            usage: receive<>
+        
+        lash - concatenate two signals(strings)
+            usage: lash<payload1/payload2>
+            
+        back_signal - reverse a signal (string)
+            usage: back_signal<signal>
+        
+        1MC - print to stdout
+            usage: 1MC<[signal]>
+            
+        log - add a comment
+            usage: log (insert comment here, read until '!')
+        
+    Some arguments may precede their respective commands.
+        [Command] [argument]!
+            or
+        [Argument] [command]!
+        
+    If command has multiple parts, delineate with a ';'
+        ex. Right standard rudder; come to course 070!
+        
+    The first letter of the declaration or statement must be capitalized because standards matter and the rules of punctuation are written in blood.
+    
+    Units are specified after values:
+        ex. 500 yards, 30 knots
+        
+language_semantics: |
+    Language operates like a ship, using ship-esque language. 
+    
+    Commands will be echoed back to the user (the Conn) when processed
+
+    
+
+# Task 4
+
+reviewer_for: Tucker Smith
+
+reviewed_by: Austin Benigni
+
+review_passed: Y
+
+reviewer_comments: <
+    Syntax is explained well and makes it easier to understand.
+    Input number 2 and output number 2 don't match up. I might be missing something on how that came about.
+    When you say time/distance based, is it actually calculaitng the distance somehow to know when to run certain commands?
+    I like the use of the 1MC and all the ship terminology, makes it seem like a fun and interesting language.
