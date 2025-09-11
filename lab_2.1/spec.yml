@@ -1,0 +1,129 @@
+# SI413 Lab 1.1: Spec for Just Strings language
+
+your_name: Tucker Smith
+
+your_alpha: 265922
+
+used_ai: Y # remember to turn in an aichat.md file as well
+
+
+# Task 1
+
+language_name: ShippyLanguage
+
+
+# Task 2
+
+example_program: |
+    1MC<"What's our heading?">!
+    receive<heading>!   log getting info from our watchstanders!
+
+    1MC<lash<heading/"?">!
+    1MC<"We need the reverse of that!">!
+
+    1MC<lash<"Helm, come to course "/back_signal<heading>>!
+
+example_input_1: |                                            
+    470
+
+example_output_1: |
+    What's our heading? 470
+    470?
+    We need the reverse of that!
+    Helm, come to course 074
+
+example_input_2: |
+    Hellow World
+
+example_output_2: |
+    What's our heading? Hellow World
+    Hellow World?
+    We need the reverse of that!
+    Helm, come to course dlroW wolleH
+
+# Task 3
+
+language_syntax: |
+    Standard shipboard command syntax, followed by an '!' for extra Hooyah.
+
+    Literals: 
+        Strings, referred to as signals, will be expressed using quotation marks. Limited to 256 characters due to the KISS design principle. If you have more to say, keep it to yourself.
+
+    Boolean Literals:
+        "Aye" and "Nay" are the only boolean literals. Aye means true, Nay means false.
+
+    Payloads: Payloads are command arguments. Payloads can be a string literal, a boolean literal, or the result of a sub-command.
+    
+    
+    Commands: Commands will be expressed in the format "command<payload1/payload2>"
+        
+        receive - read from stdin and assign the input to a new signal (variable).
+            usage: receive<variable_name>
+        
+        declare - create a new signal (variable) without assigning a value.
+            usage: declare<variable_name>
+        
+        assign - assign a new value to an existing signal.
+            usage: assign<variable_name/new_value>
+        
+        lash - concatenate two signals (strings).
+            usage: lash<signal1/signal2>
+            
+        back_signal - reverse a signal (string).
+            usage: back_signal<signal>
+
+        signal_less_than - check if signal1 is lexicographically less than signal2.
+            usage: signal_less_than<signal1/signal2>
+        
+        signal_contains - check if signal1 is a substring of signal2.
+            usage: signal_contains<signal1/signal2>
+            
+        stand_by_and_await - perform a logical AND operation.
+            usage: stand_by_and_await<boolean1/boolean2>
+            
+        stand_by_or_await - perform a logical OR operation.
+            usage: stand_by_or_await<boolean1/boolean2>
+            
+        stand_by_not - perform a logical NOT operation.
+            usage: stand_by_not<boolean>
+        
+        1MC - print to stdout. Can print signals (strings) or booleans.
+            usage: 1MC<[signal]> or 1MC<[boolean]>
+            
+        log - add a comment. The Conn doesn't need to know everything.
+            usage: log (insert comment here, read until '!')
+        
+    Some arguments may precede their respective commands.
+        [Command] [argument]!
+            or
+        [Argument] [command]!
+        
+    If command has multiple parts, delineate with a ';'
+        ex. Right standard rudder; come to course 070!
+        
+    The first letter of the declaration or statement must be capitalized because standards matter and the rules of punctuation are written in blood.
+    
+    Variables:
+        Variables are referred to as signals. You must first create a new signal using the declare command. For example, declare<my_boolean>! will create a signal named "my_boolean". A signal can hold any type of value. The assign command is used to set a value for a signal after it has been declared. The receive command is a special case for declaring a signal with user input.
+
+        
+language_semantics: |
+    Language operates like a ship, using ship-esque language. 
+    
+    Commands will be echoed back to the user (the Conn) when processed
+    
+    The back_signal command returns a new, reversed signal. It does not modify the original signal.
+    
+    signal_less_than and signal_contains commands return a boolean (Aye/Nay).
+    
+    stand_by_and_await, stand_by_or_await, and stand_by_not commands return a boolean (Aye/Nay).
+
+# Task 4
+
+reviewer_for: Tucker Smith
+
+reviewed_by: BLAH BLAH BLAH
+
+review_passed: BLAH BLAH BLAH
+
+reviewer_comments: < BLAH BLAH BLAH
