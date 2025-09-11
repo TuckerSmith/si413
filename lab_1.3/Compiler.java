@@ -1,6 +1,7 @@
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -12,56 +13,34 @@ import java.util.regex.Pattern;
 import java.util.Stack;
 
 // The main interpreter class for DRAMAQUEEN.
-public class Interp {
-    private static Scanner sharedScanner = new Scanner(System.in);
+public class Compiler {
+    private static Scanner sharedScanner = new Scanner(System.in); // MARKED CHANGE: Re-added sharedScanner to make the Evaluator class compile
 
     public static void main(String[] args) {
-        if(args.length == 0){
-            interactiveMode();
-        } else {
-            File inputFile = new File(args[0]);
-            if (!inputFile.exists()) {
-                System.err.println("Error: File not found: " + args[0]);
-                return;
-            }
-            try {
-                processFile(inputFile);
-            } catch (IOException e) {
-                System.err.println("Error reading file: " + e.getMessage());
-            } catch (ParseException e) {
-                System.err.println("Parse Error: " + e.getMessage());
-            }
+        if(args.length != 2){
+            System.err.println("Usage: java Compiler <source.prog> <compiled.ll>");
+            return;
         }
-        sharedScanner.close();
-    }
 
-    public static void interactiveMode() {
-        System.out.println("DRAMAQUEEN v1.0.0 (Interactive Mode)");
-        while (true) {
-            System.out.print("~> ");
-            String line = sharedScanner.nextLine();
-            String trimmedLine = line.trim();
+        File inputFile = new File(args[0]);
+        if (!inputFile.exists()) {
+            System.err.println("Error: File not found: " + args[0]);
+            return;
+        }
+        
+        File outputFile = new File(args[1]);
 
-            if (trimmedLine.equals("quit")) {
-                break;
-            }
-            if (trimmedLine.isEmpty()) {
-                continue;
-            }
-
-            try {
-                String fullCode = removeComments(trimmedLine);
-                if (!fullCode.trim().isEmpty()) {
-                    executeLine(fullCode);
-                }
-            } catch (ParseException e) {
-                System.err.println("Parse Error: " + e.getMessage());
-            }
+        try {
+            processFile(inputFile, outputFile);
+        } catch (IOException e) {
+            System.err.println("Error reading/writing file: " + e.getMessage());
+        } catch (ParseException e) {
+            System.err.println("Parse Error: " + e.getMessage());
         }
     }
 
-    public static void processFile(File file) throws IOException, ParseException {
-        BufferedReader reader = new BufferedReader(new FileReader(file));
+    public static void processFile(File inputFile, File outputFile) throws IOException, ParseException {
+        BufferedReader reader = new BufferedReader(new FileReader(inputFile));
         StringBuilder fileContent = new StringBuilder();
         String line;
         while ((line = reader.readLine()) != null) {
@@ -71,11 +50,11 @@ public class Interp {
 
         String code = removeComments(fileContent.toString());
         if (!code.trim().isEmpty()) {
-            executeLine(code);
+            compileCode(code, outputFile);
         }
     }
 
-    private static void executeLine(String code) throws ParseException {
+    private static void compileCode(String code, File outputFile) throws ParseException, IOException {
         List<Token> tokens = Tokenizer.tokenize(code);
         if (tokens.isEmpty()) {
             return;
@@ -83,10 +62,18 @@ public class Interp {
 
         Parser parser = new Parser(tokens);
         List<Node> statements = parser.parse();
-
+        
+        // TODO: In the next step, the AST will be traversed to generate LLVM IR.
+        // MARKED CHANGE: We now use the Evaluator to trigger the exceptions.
         Evaluator evaluator = new Evaluator(sharedScanner);
         for (Node statement : statements) {
             evaluator.evaluate(statement);
+        }
+        
+        String llvmIR = "; Placeholder for LLVM IR code\n";
+        
+        try (FileWriter writer = new FileWriter(outputFile)) {
+            writer.write(llvmIR);
         }
     }
     
@@ -303,7 +290,9 @@ class Evaluator {
             StatementNode statement = (StatementNode) node;
             if (statement.type == TokenType.HEAR_YE) {
                 String result = evaluateExpression(statement.child);
-                System.out.println(result);
+                // MARKED CHANGE: Replaced print statement with exception
+                // System.out.println(result);
+                throw new UnsupportedOperationException("this doesn't work yet");
             }
         } else {
             throw new ParseException("Invalid statement type: " + node.getClass().getName());
@@ -317,14 +306,20 @@ class Evaluator {
                 case STRING_LITERAL:
                     return expr.value;
                 case GIVE_ME:
-                    return GIVE_ME();
+                    // MARKED CHANGE: Replaced GIVE_ME call with exception
+                    // return GIVE_ME();
+                    throw new UnsupportedOperationException("this doesn't work yet");
                 case UNIFY:
                     String left = evaluateExpression(expr.children.get(0));
                     String right = evaluateExpression(expr.children.get(1));
-                    return left + right;
+                    // MARKED CHANGE: Replaced concatenation with exception
+                    // return left + right;
+                    throw new UnsupportedOperationException("this doesn't work yet");
                 case REVERTERE:
                     String argument = evaluateExpression(expr.children.get(0));
-                    return REVERTERE(argument);
+                    // MARKED CHANGE: Replaced REVERTERE call with exception
+                    // return REVERTERE(argument);
+                    throw new UnsupportedOperationException("this doesn't work yet");
                 default:
                     throw new ParseException("Unknown expression type: " + expr.type);
             }
@@ -332,12 +327,16 @@ class Evaluator {
         throw new ParseException("Invalid expression type: " + node.getClass().getName());
     }
 
+    // MARKED CHANGE: Replaced GIVE_ME body with exception
     private String GIVE_ME() {
-        return scanner.nextLine();
+        // return scanner.nextLine();
+        throw new UnsupportedOperationException("this doesn't work yet");
     }
     
+    // MARKED CHANGE: Replaced REVERTERE body with exception
     private String REVERTERE(String input) {
-        StringBuilder reversed = new StringBuilder(input);
-        return reversed.reverse().toString();
+        // StringBuilder reversed = new StringBuilder(input);
+        // return reversed.reverse().toString();
+        throw new UnsupportedOperationException("this doesn't work yet");
     }
 }

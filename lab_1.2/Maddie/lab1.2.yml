@@ -1,0 +1,120 @@
+# SI413 Lab 1.2: Interpreter for Just Strings language
+
+
+your_name: MADELEINE IVERSON
+
+
+your_alpha: 263042
+
+
+used_ai: Y # remember to turn in an aichat.md file as well
+
+
+# leave this as NONE for your initial submission
+changes_on_resubmit: |
+   NONE
+
+
+
+
+# Task 1
+
+
+language_name: DRAMA QUEEN
+
+
+
+
+# Task 2
+
+
+example_program: |
+   HEAR_YE(~ hello ~)
+
+
+   HEAR_YE(~ I love tostadas ~)
+
+
+   HEAR_YE(I love tostadas)
+
+
+   shhh comment #1 shhh
+
+
+   shhh multi line
+        comment shhh
+
+
+   HEAR_YE(~ ice ~ UNIFY ~ cream ~)
+
+
+   HEAR_YE(GIVE_ME)
+
+
+   HEAR_YE(REVERTERE(GIVE_ME))
+
+
+   HEAR_YE(~ pizza ~ UNIFY ~ GIVE_ME)
+
+
+   HEAR_YE(~PIZZA my name is ~ Madeleine Rose ~PIZZA)
+
+
+example_input_1: |
+   chocolate
+
+
+   cookie
+
+
+   party
+
+
+example_output_1: |
+   hello
+   I love tostadas
+   icecream
+   chocolate
+   eikooc
+   pizzaparty
+   my name is ~ Madeleine Rose
+
+
+example_input_2: |
+   apple
+
+
+   forget me not
+
+
+   party
+
+
+example_output_2: |
+   hello
+   I love tostadas
+   icecream
+   apple
+   ton em tegrof
+   pizzaparty
+   my name is ~ Madeleine Rose
+
+
+
+
+# Task 4
+
+
+reviewer_for: MADDIE IVERSON
+
+
+reviewed_by: TUCKER SMITH
+
+
+review_passed: Y
+
+
+reviewer_comments: <
+   Everything works correctly except including '~' in a string.
+   Good job! The actual code is very concise and eloquent. You
+   should delete the big commented-out part at the end.

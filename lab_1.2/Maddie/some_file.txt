@@ -1,0 +1,19 @@
+HEAR_YE(~ hello ~)
+
+HEAR_YE(~ I love tostadas ~)
+
+shhh comment #1 shhh
+
+shhh multi line
+        comment shhh
+
+HEAR_YE(~ ice ~ UNIFY ~ cream ~)
+
+HEAR_YE(GIVE_ME)
+
+HEAR_YE(REVERTERE(GIVE_ME))
+
+HEAR_YE(~ pizza ~ UNIFY ~ GIVE_ME)
+
+HEAR_YE(~PIZZA my name is ~ Madeleine Rose ~PIZZA)
+

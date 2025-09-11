@@ -1,0 +1,96 @@
+# SI413 Fall 2025 Unit 1 Labs
+
+language_name: DRAMAQUEEN
+
+notes_from_prof: |
+    Language designed by Austin Benigni.
+    This is a fun and silly-looking language, but it seriously works!
+    Some aspects follow a similar structure to languages you are used to
+    like Python, but with different operators and keywords.
+    The string literal syntax is pretty clever - notice how it allows us
+    to completely avoid the need for escapes.
+
+
+example_program: |
+    shhh This is a simple program in the DRAMA QUEEN language shhh
+    shhh HEAR_YE() serves as a call to print the enclosed expression shhh
+    shhh The spaces just inside the ~'s are required, and do not go into the string itself shhh
+    HEAR_YE(~ I am a DRAMATIC LANGUAGE ~) shhh I NEED MY SPACE! shhh
+
+    HEAR_YE(REVERTERE(GIVE_ME))
+    shhh GIVE_ME takes a single line of text from the console as a string.
+         REVERTERE reverses a string given to it shhh
+
+    shhh In order to concatenate strings you use the UNIFY operator as shown below shhh
+    HEAR_YE(~ I will be as DRAMATIC ~ UNIFY ~   ~ UNIFY ~ as I WANT ~)
+
+    shhh Should you like to print a ~, all you have to do is join
+         any combination of capital letters to the opening tilde as well as the ending tilde.
+         Now any tilde on the inside can be printed shhh
+    HEAR_YE(~APPLE I'd like to print a ~ thank you very much. ~APPLE)
+
+example_input_1: |
+    hello
+
+example_output_1: |
+    I am a DRAMATIC LANGUAGE
+    olleh
+    I will be as DRAMATIC as I WANT
+    I'd like to print a ~ thank you very much.
+
+example_input_2: |
+    That seems like a bit much
+
+example_output_2: |
+    I am a DRAMATIC LANGUAGE
+    hcum tib a ekil smees tahT
+    I will be as DRAMATIC as I WANT
+    I'd like to print a ~ thank you very much.
+
+
+language_syntax: |
+    statements:
+        Print: HEAR_YE(expr)
+
+    expressions:
+        String Literal:
+            A sequence of ASCII characters enclosed by a left and right delimiter.
+            The left delimiter is a '~',
+                followed by 0 or more uppercase letters (the magic word),
+                followed by a single space.
+            The right delimiter is a single space,
+                followed by a '~',
+                followed by the same magic word.
+
+        Concatenation: expr1 UNIFY expr2
+
+        Reversal: REVERTERE(expr)
+
+        Input: GIVE_ME
+
+    Comments: A comment can be opened by writing "shhh" and then closed
+        just the same "shhh". If no closing "shhh" is provided, everything
+        following the opening "shhh" will be commented out. Multiline and
+        single line comments are both capable of being used with this
+        format.
+
+    Comments and whitespace are ignored everywhere except inside a
+    string literal.
+
+
+language_semantics: |
+    Print: HEAR_YE() takes in a string and prints it out to the terminal
+
+    String literal: The exact sequence of characters between (but not
+        including) the opening and closing spaces of the delimiters,
+        forms the string.
+
+    Concatentaion: UNIFY operator takes two string literals and combines
+        them together into one string.
+
+    Reversal: REVERTERE() takes any string expression within parentheses
+        and converts it to be completely reversed.
+
+    Input: GIVE_ME can read in a singular line of text from the console
+        as a string literal. Once the user hits the 'Enter' key what has
+        been written gets read in.
