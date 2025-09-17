@@ -15,31 +15,37 @@ language_name: ShippyLanguage
 # Task 2
 
 example_program: |
-    1MC<"What's our heading?">!
-    receive<heading>!   log getting info from our watchstanders!
+    1MC<"Secure a watch, what's the password?">!
+    receive<watch_pass>!   log Getting the conn's password!
 
-    1MC<lash<heading/"?">!
-    1MC<"We need the reverse of that!">!
+    declare<auth_status>!   log Creating a variable to hold our boolean result!
 
-    1MC<lash<"Helm, come to course "/back_signal<heading>>!
+    assign<auth_status/stand_by_and_await<signal_contains<watch_pass/"starboard">/stand_by_not<signal_less_than<watch_pass/"Zulu">>>>!
+    log The password must contain "starboard" and not come lexicographically before "Zulu"!
+
+    1MC<"Security status: "/auth_status>!
+    log Report the auth status to the bridge!
+
+    1MC<"We need to log this password reversal in the logbook:">!
+    1MC<back_signal<watch_pass>>!
 
 example_input_1: |                                            
-    470
+    starboard_anchor
 
 example_output_1: |
-    What's our heading? 470
-    470?
-    We need the reverse of that!
-    Helm, come to course 074
+    Secure a watch, what's the password? starboard_anchor
+    Security status: Aye
+    We need to log this password reversal in the logbook:
+    rohcna_draobrats
 
 example_input_2: |
-    Hellow World
+    port_bow
 
 example_output_2: |
-    What's our heading? Hellow World
-    Hellow World?
-    We need the reverse of that!
-    Helm, come to course dlroW wolleH
+    Secure a watch, what's the password? port_bow
+    Security status: Nay
+    We need to log this password reversal in the logbook:
+    wob_trop
 
 # Task 3
 
@@ -118,7 +124,109 @@ language_semantics: |
     
     stand_by_and_await, stand_by_or_await, and stand_by_not commands return a boolean (Aye/Nay).
 
-# Task 4
+language_token_specification: | 
+    Commands: 1MC, receive, declare, assign, lash, back_signal, signal_less_than, signal_contains, stand_by_and_await, stand_by_or_await, stand_by_not, log.
+
+    Literals:
+
+        String: A sequence of characters enclosed in " ".
+
+        Boolean: Aye or Nay.
+
+    Identifiers: Alphanumeric names used for signals (variables), e.g., heading, watch_pass.
+
+    Punctuation:
+
+        <: Command payload start.
+
+        >: Command payload end.
+
+        /: Payload separator.
+
+        !: Statement terminator.
+
+        ;: Multi-command separator.
+
+    Whitespace: Spaces, newlines, and tabs. These separate tokens and are ignored.
+
+    Comments: Content following the log command until the next !. This text is ignored by the compiler.
+
+
+context_free_grammar: |
+    Terminals
+
+        Keywords: 1MC, receive, declare, assign, lash, back_signal, signal_less_than, signal_contains, stand_by_and_await, stand_by_or_await, stand_by_not, log.
+
+        Literals: STRING_LITERAL, BOOLEAN_LITERAL (Aye, Nay).
+
+        Identifiers: IDENTIFIER.
+
+        Punctuation: COMMAND_START (<), COMMAND_END (>), ARGUMENT_SEPARATOR (/), STATEMENT_END (!), MULTI_COMMAND_SEPARATOR (;).
+
+    Production Rules
+
+        1. <Program>
+
+            → <StatementList>
+
+        2. <StatementList>
+
+            → <Statement> <StatementList>
+
+            → <Statement>
+
+        3. <Statement>
+
+            → <Command> <OptionalLog> STATEMENT_END
+
+            → <Command> MULTI_COMMAND_SEPARATOR <CommandList> STATEMENT_END
+
+            Note: The rule for log is a special case. It's a command that consumes all subsequent text up to a !.
+
+        4. <CommandList>
+
+            → <Command>
+
+            → <Command> MULTI_COMMAND_SEPARATOR <CommandList>
+
+        5. <OptionalLog>
+
+            → log
+
+            → empty
+
+        6. <Command>
+
+            → 1MC COMMAND_START <Payload> COMMAND_END
+
+            → back_signal COMMAND_START <Payload> COMMAND_END
+
+            → stand_by_not COMMAND_START <Payload> COMMAND_END
+
+            → receive COMMAND_START IDENTIFIER COMMAND_END
+
+            → declare COMMAND_START IDENTIFIER COMMAND_END
+
+            → <TwoPayloadCommand>
+
+        7. <TwoPayloadCommand>
+
+            → (lash | signal_less_than | signal_contains | stand_by_and_await | stand_by_or_await | assign) COMMAND_START <Payload> ARGUMENT_SEPARATOR <Payload> COMMAND_END
+
+        8. <Payload>
+
+            → <Literal>
+
+            → IDENTIFIER
+
+            → <Command>
+
+        9. <Literal>
+
+            → STRING_LITERAL
+
+            → BOOLEAN_LITERAL
+
 
 reviewer_for: Tucker Smith
 

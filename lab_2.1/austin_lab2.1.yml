@@ -1,0 +1,222 @@
+# SI413 Lab 2.1: Spec for StringBoolVar Language
+
+your_name: AUSTIN BENIGNI
+
+your_alpha: 260456
+
+used_ai: Y # remember to turn in an aichat.md file as well
+
+# describe any collaboration or help you got from classmates
+collaboration: |
+    NONE
+
+# leave this as NONE for your initial submission
+changes_on_resubmit: |
+    NONE
+
+#### TASK 1 ####
+
+language_name: DRAMAQUEEN
+
+
+#### TASK 2 ####
+
+example_program: |
+    shhh I am a basic example program of the language DRAMAQUEEN shhh
+    HEAR_YE(~ I am a DRAMATIC LANGUAGE! What say you? ~)
+
+    shhh A string variable is declared using type SPEECH. GIVE_ME returns a string from stdin. shhh
+    SPEECH s1 = GIVE_ME
+
+    shhh REVERTERE reverses the enclosed string. UNIFY concatenates the strings to its left and right together shhh
+    HEAR_YE(~ " ~ UNIFY REVERTERE(s1) UNIFY ~ "? ~ UNIFY ~  What gibberish! ~)
+
+    HEAR_YE(~ Hmmm, say something again. ~)
+
+    SPEECH s2 = GIVE_ME
+
+    HEAR_YE(~ Allow me to dazzle you with my superior intellect! I will now determine whether or not your second input exists within your first! ~)
+
+    shhh A boolean variable is declared using YAY_OR_NAY
+         ENVELOPS checks whether s1 contains the substring s2 shhh
+    YAY_OR_NAY within = s1 ENVELOPS s2
+    HEAR_YE(within)     shhh BONAFIDE is true and FALSEHOOD is false. Including a boolean within a print, will print out the booleans value to stdout shhh
+    HEAR_YE(~ I told you I was good! ~)
+
+    HEAR_YE(~ Now lets check if s1 also comes before s2 LEXICOGRAPHICALLY!!! what ever that means ~)
+    YAY_OR_NAY is_before = s1 BENEATH s2    shhh BENEATH compares s1 and s2 lexicographically, returns true if s1 is less, false otherwise.
+    HEAR_YE(Is it so?)
+    HEAR_YE(is_before)
+
+    HEAR_YE(~ I can lie by negating that value and you'll never know it. See? ~)
+
+    shhh You can perform a logical negation of a boolean value with TOTALLY_NOT
+    is_before = TOTALLY_NOT(is_before) 
+    HEAR_YE(is_before)
+
+    shhh Logical Or can be accomplished by saying b1 PERHAPS b2 shhh
+    HEAR_YE(~ Were either of those true? ~)
+    HEAR_YE(within PERHAPS is_before)
+
+    shhh Logical And can be accomplished via b1 FURTHERMORE b2 shhh
+    HEAR_YE(~ Were both of them true? ~)
+    HEAR_YE(within FURTHERMORE is_before)
+
+    shhh You can also directly assign a boolean value shhh
+    YAY_OR_NAY ex = BONAFIDE
+    ex = FALSEHOOD
+
+    shhh You can print tilde's by utilizing the magic word feature. Attach any combination of capital letters to the first and last tilde, they must match, and now you can print tildes! shhh
+    HEAR_YE(~MAGIC ~~~~~~~ I can print tildes! ~MAGIC)
+
+example_input_1: |
+    lexicographically
+    Lexigraphical
+
+example_output_1: |
+    I am a DRAMATIC LANGUAGE! What say you?
+    "lacihpargocixel"?  What gibberish!
+    Hmmm, say something again.
+    Allow me to dazzle you with my superior intellect! I will now determine whether or not your second input exists within your first!
+    BONAFIDE
+    I told you I was good!
+    Now lets check if s1 also comes before s2 LEXICOGRAPHICALLY!!! what ever that means
+    Is it so?
+    FALSEHOOD
+    I can lie by negating that value and you'll never know it. See?
+    BONAFIDE
+    Were either of those true?
+    BONAFIDE
+    Were both of them true?
+    BONAFIDE
+    ~~~~~~~ I can print tildes!
+
+example_input_2: |
+    zebra
+    apple
+
+example_output_2: |
+    I am a DRAMATIC LANGUAGE! What say you?
+    "arbez"?  What gibberish!
+    Hmmm, say something again.
+    Allow me to dazzle you with my superior intellect! I will now determine whether or not your second input exists within your first!
+    FALSEHOOD
+    I told you I was good!
+    Now lets check if s1 also comes before s2 LEXICOGRAPHICALLY!!! what ever that means
+    Is it so?
+    FALSEHOOD
+    I can lie by negating that value and you'll never know it. See?
+    BONAFIDE
+    Was either of those true?
+    BONAFIDE
+    Were both of them true?
+    FALSEHOOD
+    ~~~~~~~ I can print tildes!
+
+#### TASK 3 ####
+
+
+tokens: |
+    Token name    Regex
+    ----------    -----
+    LP            \\(
+    RP            \\)
+    ASSIGN        =
+    --            shhh .*? shhh
+    --            \\s+
+
+    BOOL          YAY_OR_NAY
+    STRING        SPEECH
+    BONAFIDE_LIT  BONAFIDE
+    FALSEHOOD_LIT FALSEHOOD
+    STRING_LIT    (~[A-Z]*) .*?  \1
+
+    CAT           UNIFY
+    REVERSE       REVERTERE
+    INPUT         GIVE_ME
+    PRINT         HEAR_YE
+    
+    AND           FURTHERMORE
+    OR            PERHAPS
+    NOT           TOTALLY_NOT
+    STR_LESS_THAN BENEATH
+    CONTAINS      ENVELOPS
+
+    ID            [A-Za-z][A-Za-z0-9_]*
+    
+
+
+#### TASK 4 ####
+
+# remove or replace the example production rule with your own!
+grammar: |
+    program -> stmt program
+    program -> ε
+    
+    stmt -> print_stmt | declare_stmt | assign_stmt
+    
+    print_stmt -> PRINT LP expr RP
+    
+    declare_stmt -> STRING ID ASSIGN string_expr | BOOL ID ASSIGN boolean_expr
+    
+    assign_stmt -> ID ASSIGN expr
+
+    expr -> string_expr | boolean_expr
+
+    string_expr -> STRING_LIT | string_expr CAT string_expr | INPUT | REVERSE LP string_expr RP | LP string_expr RP | ID
+
+    boolean_expr -> BONAFIDE_LIT | FALSEHOOD_LIT | string_expr STR_LESS_THAN string_expr |  string_expr CONTAINS string_expr | boolean_expr AND boolean_expr | boolean_expr OR boolean_expr | NOT LP boolean_expr RP | LP boolean_expr RP | ID
+
+
+#### TASK 5 ####
+
+semantics: |
+    TYPES:
+        - Variables must be declared with a type and an initializing expression consistent with that type
+            SPEECH x = <string_expr>
+            YAY_OR_NAY = <boolean_expr>
+        - To reassign variables, their must be the ID followed by an expression consistent with the type of the ID. Otherwise an error will happen
+            x = GIVE_ME
+    
+    LITERALS:
+        - String Literal: ~MAGIC string_expr ~MAGIC
+            - Value of the string literal is the sequence of characters between the single spaces following the '~' delimeters. MAGIC words must match to allow for printable '~'.
+        - Boolean Literal:
+            - BONAFIDE: equates to TRUE
+            - FALSEHOOD: equates to FALSEHOOD
+
+    
+    OPERATORS: left to right associative
+        - Concatenation: string_expr1 UNIFY string_expr2
+            - Results in the concatenations of string_expr1 and string_expr2.
+        - String Reversal: REVERTERE(string_expr)
+            - Reverses the characters in a string_expr back to front.
+        - Input: GIVE_ME
+            - Returns a string from the user taken from stdin without a new line character.
+        - And: boolean_expr1 FURTHERMORE boolean_expr2
+            - True if both boolean_expr1 and boolean_expr2 are true. False otherwise.
+        - Or: boolean_expr1 PERHAPS boolean_expr2
+            - True if either boolean_expr1 or boolean_expr2 or both are true. False otherwise.
+        - Negation: TOTALLY_NOT boolean_expr
+            - Negates the following boolean_expr.
+        Contains: string_expr1 ENVELOPS string_expr2
+            - True if string_expr1 contains a substring identical to string_expr2.
+        Lexigraphical Comparison: string_expr1 BENEATH string_expr2
+            - True if string_expr1 is lexicographically less than string_expr2.
+
+    PRINT:
+        - HEAR_YE(expr)
+            - If expr is a string_expr, prints out the string with a new line at the end to stdout
+            - If expr is a boolean_expr, prints out BONAFIDE if bool evaluates to true and prints out FALSEHOOD if bool evaluates to false.
+
+
+#### TASK 6 ####
+
+reviewer_for: Austin Benigni
+
+reviewed_by: Tucker Smith
+
+review_passed: Y
+
+reviewer_comments: |
+    I like it! I love the clever word choice you used, and the grammar looks good to me.
