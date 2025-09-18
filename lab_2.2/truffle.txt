@@ -1,0 +1,103 @@
+# SI413 Unit 2 Languages
+
+language_name: Truffle
+
+notes_from_prof: |
+    Language designed by Ziming Huang and reviewed by Johnson Ampofo.
+
+    This language is very terse and has a clean, simple syntax with
+    infix operators. The grammar is untyped, so any boolean or string
+    expression is treated the same. This means that the parse tree is
+    simpler, but the interpreter will have to do more type checks at
+    run-time.
+
+
+example_program: |
+    @ Simple print
+    p [welcome]
+
+    @ Simple boolean ops
+    a~0
+    b~1
+    p [booleans]
+    p a&b
+    p a|b
+
+    @ Simple string ops
+    str~[bye]
+    strb~[hello]
+    p [strings]
+    p str<strb
+    p str?strb
+    p [ello]?strb
+
+    @ Variable reassign and concat
+    str~[this is ]+i
+    p [$[hi$] ]+str+r~[.!]~
+
+    @ Nested statements
+    p r~r~r~strb~~~
+
+    p i<i&b
+    p r~[dne ]+i+r~[cba ]~~
+
+example_input_1: |
+    Reginald
+    abc
+    abcd
+    bye
+
+example_output_1: |
+    welcome
+    booleans
+    0
+    1
+    strings
+    1
+    0
+    1
+    [hi] this is Reginald!.
+    olleh
+    1
+    cba eyb end
+
+
+tokens: |
+    TILDE:        ~
+    OP:           <|>|\?|\+|&|\|
+    BOOL:         0|1
+    PRINT:        p\s
+    INPUT:        i
+    REV:          r
+    LIT:          \[([^\[\]\$]|\$\[|\$\]|\$\$)*\]
+    ID:           [a-z]+
+    ignore:       @.*
+    ignore:       [\n]
+
+
+grammar: |
+    program -> stat program
+            -> ε
+    stat -> PRINT expr
+         -> ID TILDE expr
+    expr -> LIT
+         -> BOOL
+         -> expr OP expr
+         -> INPUT
+         -> REV TILDE expr TILDE
+         -> ID
+
+semantics: |
+    Statements:
+      p followed by any expression is a statement that results in the expression being printed
+      varname~value is an assignment statement
+    Expressions:
+      & performs boolean AND between 2 boolean variables, returns 0 or 1
+      | performs boolean OR between 2 boolean variables, returns 0 or 1
+      < checks if the string on the left is shorter than the string on the right. Return 0 if shorter, otherwise 1.
+      > checks if the string on the left is longer than the string on the right. Return 0 if longer, otherwise 1.
+      ? checks if the string on the left is a substring of the string on the right. Return 0 or 1
+      + concatenates two strings
+      r followed by a string expression enclosed in ~ returns the expression in reverse order
+    Others:
+      $ is an escape character which interprets the character directly succeeding it as a string literal
