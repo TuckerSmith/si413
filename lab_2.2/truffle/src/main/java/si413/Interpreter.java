@@ -23,6 +23,8 @@ import java.util.Map;
 import java.util.HashMap;
 import org.antlr.v4.runtime.TokenStream;
 import org.antlr.v4.runtime.BufferedTokenStream;
+import org.antlr.v4.runtime.CharStreams;
+import org.antlr.v4.runtime.tree.ParseTree;
 
 /** Interpreter for the Truffle language.
  * This interpreter uses a custom tokenizer based on the tokenSpec.txt file
@@ -82,14 +84,15 @@ public class Interpreter extends ParseRulesBaseVisitor<Object> {
         return visitChildren(ctx);
     }
 
+    // Corrected visitor method for the and_or_expr rule.
     @Override
     public Object visitAnd_or_expr(ParseRulesParser.And_or_exprContext ctx) {
-        if (ctx.and_or_expr() != null) {
+        // Check for the presence of an operator token.
+        if (ctx.OP_AND() != null || ctx.OP_OR() != null) {
             Object left = visit(ctx.and_or_expr());
             Object right = visit(ctx.comp_expr());
-            String op = ctx.OP_AND() != null ? ctx.OP_AND().getText() : ctx.OP_OR().getText();
+            String op = (ctx.OP_AND() != null) ? ctx.OP_AND().getText() : ctx.OP_OR().getText();
 
-            // Logic for boolean operators
             if (left instanceof Integer && right instanceof Integer) {
                 int l = (int) left;
                 int r = (int) right;
@@ -102,12 +105,15 @@ public class Interpreter extends ParseRulesBaseVisitor<Object> {
             }
             throw new RuntimeException("Error: '" + op + "' operator requires two booleans (0 or 1).");
         }
-        return visitChildren(ctx);
+        // If there's no operator, just pass the value of the single child.
+        return visit(ctx.comp_expr());
     }
-    
+
+    // Corrected visitor method for the comp_expr rule.
     @Override
     public Object visitComp_expr(ParseRulesParser.Comp_exprContext ctx) {
-        if (ctx.comp_expr() != null) {
+        // Check for the presence of an operator token.
+        if (ctx.OP_LT() != null || ctx.OP_GT() != null || ctx.OP_SUB() != null || ctx.OP_ADD() != null) {
             Object left = visit(ctx.comp_expr());
             Object right = visit(ctx.rev_expr());
             String op = "";
@@ -116,7 +122,6 @@ public class Interpreter extends ParseRulesBaseVisitor<Object> {
             else if (ctx.OP_SUB() != null) op = ctx.OP_SUB().getText();
             else if (ctx.OP_ADD() != null) op = ctx.OP_ADD().getText();
 
-            // Logic for string operators
             if (left instanceof String && right instanceof String) {
                 String l = (String) left;
                 String r = (String) right;
@@ -133,7 +138,8 @@ public class Interpreter extends ParseRulesBaseVisitor<Object> {
             }
             throw new RuntimeException("Error: '" + op + "' operator requires two strings.");
         }
-        return visitChildren(ctx);
+        // If there's no operator, just pass the value of the single child.
+        return visit(ctx.rev_expr());
     }
     
     @Override
@@ -146,7 +152,7 @@ public class Interpreter extends ParseRulesBaseVisitor<Object> {
                 throw new RuntimeException("Error: 'r~' can only be applied to strings.");
             }
         }
-        return visitChildren(ctx);
+        return visit(ctx.primary_expr());
     }
 
     @Override
@@ -196,16 +202,18 @@ public class Interpreter extends ParseRulesBaseVisitor<Object> {
         }
         
         // This handles expressions within parentheses
-        return visitChildren(ctx);
+        return visit(ctx.expr());
     }
 
-    // The rest of the methods remain unchanged as they correctly use the custom tokenizer.
     public ParseRulesParser.ProgramContext parse(Path sourceFile) throws IOException {
+        // This line correctly gets the TokenStream from your custom tokenizer.
         TokenStream tokenStream = tokenizer.streamFrom(sourceFile);
         
-        ParseRulesParser parser = new ParseRulesParser(new BufferedTokenStream(tokenStream));
+        // You must use the TokenStream directly with the ParseRulesParser.
+        ParseRulesParser parser = new ParseRulesParser(tokenStream);
         Errors.register(parser);
         
+        // This is the start rule from your grammar.
         return parser.program(); 
     }
 

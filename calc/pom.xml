@@ -5,11 +5,11 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>si413</groupId>
-  <artifactId>truffle</artifactId>
+  <artifactId>calc</artifactId>
   <version>1.1</version>
   <packaging>jar</packaging>
 
-  <name>truffle</name>
+  <name>calc</name>
   <description>Lab implementation for SI413 at USNA.</description>
   <url>http://roche.work/si413</url>
 

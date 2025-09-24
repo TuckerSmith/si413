@@ -1,5 +1,4 @@
 # Truffle Language Tokens
-
 TILDE: ~
 OP_LT: <
 OP_GT: >
@@ -13,9 +12,6 @@ INPUT: i
 REV: r
 LIT: \[([^\[\]\$]|\$\[|\$\]|\$\$)*\]
 ID: [a-z]+
-
 # Ignored tokens for comments and whitespace
 ignore: @.*
-ignore: [\n]
-ignore: [ ]
-ignore: [\t]
+ignore: [ \t\r\n]+
