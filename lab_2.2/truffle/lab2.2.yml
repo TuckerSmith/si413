@@ -1,0 +1,17 @@
+# SI413 Lab 1.2: Interpreter for Just Strings language
+
+your_name: Tucker Smith
+
+your_alpha: 265922
+
+used_ai: Y # remember to turn in an aichat.md file as well
+
+# leave this as NONE for your initial submission
+changes_on_resubmit: |
+    I pretty much started over from the top, and focused on implementing one feature at a time. I got it working!
+language_name: truffle
+
+any_other_comments_for_me: |
+    NONE
+
+
