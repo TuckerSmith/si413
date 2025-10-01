@@ -1,0 +1,10 @@
+p r~0~ @ Expected: 1
+p r~1~ @ Expected: 0
+p r~[olleh]~ @ Expected: hello
+
+@ Test nested reversal from example:
+strb~[hello]
+p r~r~r~strb~~~ @ Expected: olleh
+
+str~[this is ]+i
+p [$[hi$] ]+str+r~[.!]~ @ If i="Reginald", this prints: [hi] this is Reginald!.

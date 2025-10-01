@@ -10,15 +10,14 @@ import java.util.Iterator;
 import java.util.ArrayList;
 
 @SuppressWarnings({"all", "warnings", "unchecked", "unused", "cast", "CheckReturnValue"})
-public class ParseRulesParser extends Parser {
+public class ParseRules extends Parser {
 	static { RuntimeMetaData.checkVersion("4.13.1", RuntimeMetaData.VERSION); }
 
 	protected static final DFA[] _decisionToDFA;
 	protected static final PredictionContextCache _sharedContextCache =
 		new PredictionContextCache();
 	public static final int
-		TILDE=1, OP=2, BOOL=3, PRINT=4, INPUT=5, REV=6, LIT=7, ID=8, COMMENT=9, 
-		WS=10;
+		TILDE=1, OP=2, BOOL=3, PRINT=4, INPUT=5, REV=6, LIT=7, ID=8;
 	public static final int
 		RULE_program = 0, RULE_stat = 1, RULE_expr = 2;
 	private static String[] makeRuleNames() {
@@ -30,14 +29,12 @@ public class ParseRulesParser extends Parser {
 
 	private static String[] makeLiteralNames() {
 		return new String[] {
-			null, "'~'", null, null, "'p'", "'i'", "'r'"
 		};
 	}
 	private static final String[] _LITERAL_NAMES = makeLiteralNames();
 	private static String[] makeSymbolicNames() {
 		return new String[] {
-			null, "TILDE", "OP", "BOOL", "PRINT", "INPUT", "REV", "LIT", "ID", "COMMENT", 
-			"WS"
+			null, "TILDE", "OP", "BOOL", "PRINT", "INPUT", "REV", "LIT", "ID"
 		};
 	}
 	private static final String[] _SYMBOLIC_NAMES = makeSymbolicNames();
@@ -86,34 +83,61 @@ public class ParseRulesParser extends Parser {
 	@Override
 	public ATN getATN() { return _ATN; }
 
-	public ParseRulesParser(TokenStream input) {
+	public ParseRules(TokenStream input) {
 		super(input);
 		_interp = new ParserATNSimulator(this,_ATN,_decisionToDFA,_sharedContextCache);
 	}
 
 	@SuppressWarnings("CheckReturnValue")
 	public static class ProgramContext extends ParserRuleContext {
+		public ProgramContext(ParserRuleContext parent, int invokingState) {
+			super(parent, invokingState);
+		}
+		@Override public int getRuleIndex() { return RULE_program; }
+	 
+		public ProgramContext() { }
+		public void copyFrom(ProgramContext ctx) {
+			super.copyFrom(ctx);
+		}
+	}
+	@SuppressWarnings("CheckReturnValue")
+	public static class RegularProgramContext extends ProgramContext {
 		public StatContext stat() {
 			return getRuleContext(StatContext.class,0);
 		}
 		public ProgramContext program() {
 			return getRuleContext(ProgramContext.class,0);
 		}
-		public ProgramContext(ParserRuleContext parent, int invokingState) {
-			super(parent, invokingState);
-		}
-		@Override public int getRuleIndex() { return RULE_program; }
+		public RegularProgramContext(ProgramContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ParseRulesListener ) ((ParseRulesListener)listener).enterProgram(this);
+			if ( listener instanceof ParseRulesListener ) ((ParseRulesListener)listener).enterRegularProgram(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ParseRulesListener ) ((ParseRulesListener)listener).exitProgram(this);
+			if ( listener instanceof ParseRulesListener ) ((ParseRulesListener)listener).exitRegularProgram(this);
 		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof ParseRulesVisitor ) return ((ParseRulesVisitor<? extends T>)visitor).visitProgram(this);
+			if ( visitor instanceof ParseRulesVisitor ) return ((ParseRulesVisitor<? extends T>)visitor).visitRegularProgram(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+	@SuppressWarnings("CheckReturnValue")
+	public static class EmptyProgramContext extends ProgramContext {
+		public TerminalNode EOF() { return getToken(ParseRules.EOF, 0); }
+		public EmptyProgramContext(ProgramContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof ParseRulesListener ) ((ParseRulesListener)listener).enterEmptyProgram(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof ParseRulesListener ) ((ParseRulesListener)listener).exitEmptyProgram(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof ParseRulesVisitor ) return ((ParseRulesVisitor<? extends T>)visitor).visitEmptyProgram(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -124,8 +148,10 @@ public class ParseRulesParser extends Parser {
 		try {
 			setState(10);
 			_errHandler.sync(this);
-			switch ( getInterpreter().adaptivePredict(_input,0,_ctx) ) {
-			case 1:
+			switch (_input.LA(1)) {
+			case PRINT:
+			case ID:
+				_localctx = new RegularProgramContext(_localctx);
 				enterOuterAlt(_localctx, 1);
 				{
 				setState(6);
@@ -134,11 +160,16 @@ public class ParseRulesParser extends Parser {
 				program();
 				}
 				break;
-			case 2:
+			case EOF:
+				_localctx = new EmptyProgramContext(_localctx);
 				enterOuterAlt(_localctx, 2);
 				{
+				setState(9);
+				match(EOF);
 				}
 				break;
+			default:
+				throw new NoViableAltException(this);
 			}
 		}
 		catch (RecognitionException re) {
@@ -154,27 +185,56 @@ public class ParseRulesParser extends Parser {
 
 	@SuppressWarnings("CheckReturnValue")
 	public static class StatContext extends ParserRuleContext {
-		public TerminalNode PRINT() { return getToken(ParseRulesParser.PRINT, 0); }
-		public ExprContext expr() {
-			return getRuleContext(ExprContext.class,0);
-		}
-		public TerminalNode ID() { return getToken(ParseRulesParser.ID, 0); }
-		public TerminalNode TILDE() { return getToken(ParseRulesParser.TILDE, 0); }
 		public StatContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_stat; }
+	 
+		public StatContext() { }
+		public void copyFrom(StatContext ctx) {
+			super.copyFrom(ctx);
+		}
+	}
+	@SuppressWarnings("CheckReturnValue")
+	public static class AssignmentStatementContext extends StatContext {
+		public TerminalNode ID() { return getToken(ParseRules.ID, 0); }
+		public TerminalNode TILDE() { return getToken(ParseRules.TILDE, 0); }
+		public ExprContext expr() {
+			return getRuleContext(ExprContext.class,0);
+		}
+		public AssignmentStatementContext(StatContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ParseRulesListener ) ((ParseRulesListener)listener).enterStat(this);
+			if ( listener instanceof ParseRulesListener ) ((ParseRulesListener)listener).enterAssignmentStatement(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ParseRulesListener ) ((ParseRulesListener)listener).exitStat(this);
+			if ( listener instanceof ParseRulesListener ) ((ParseRulesListener)listener).exitAssignmentStatement(this);
 		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof ParseRulesVisitor ) return ((ParseRulesVisitor<? extends T>)visitor).visitStat(this);
+			if ( visitor instanceof ParseRulesVisitor ) return ((ParseRulesVisitor<? extends T>)visitor).visitAssignmentStatement(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+	@SuppressWarnings("CheckReturnValue")
+	public static class PrintStatementContext extends StatContext {
+		public TerminalNode PRINT() { return getToken(ParseRules.PRINT, 0); }
+		public ExprContext expr() {
+			return getRuleContext(ExprContext.class,0);
+		}
+		public PrintStatementContext(StatContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof ParseRulesListener ) ((ParseRulesListener)listener).enterPrintStatement(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof ParseRulesListener ) ((ParseRulesListener)listener).exitPrintStatement(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof ParseRulesVisitor ) return ((ParseRulesVisitor<? extends T>)visitor).visitPrintStatement(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -187,6 +247,7 @@ public class ParseRulesParser extends Parser {
 			_errHandler.sync(this);
 			switch (_input.LA(1)) {
 			case PRINT:
+				_localctx = new PrintStatementContext(_localctx);
 				enterOuterAlt(_localctx, 1);
 				{
 				setState(12);
@@ -196,6 +257,7 @@ public class ParseRulesParser extends Parser {
 				}
 				break;
 			case ID:
+				_localctx = new AssignmentStatementContext(_localctx);
 				enterOuterAlt(_localctx, 2);
 				{
 				setState(14);
@@ -223,37 +285,134 @@ public class ParseRulesParser extends Parser {
 
 	@SuppressWarnings("CheckReturnValue")
 	public static class ExprContext extends ParserRuleContext {
-		public TerminalNode LIT() { return getToken(ParseRulesParser.LIT, 0); }
-		public TerminalNode BOOL() { return getToken(ParseRulesParser.BOOL, 0); }
-		public TerminalNode INPUT() { return getToken(ParseRulesParser.INPUT, 0); }
-		public TerminalNode REV() { return getToken(ParseRulesParser.REV, 0); }
-		public List<TerminalNode> TILDE() { return getTokens(ParseRulesParser.TILDE); }
-		public TerminalNode TILDE(int i) {
-			return getToken(ParseRulesParser.TILDE, i);
+		public ExprContext(ParserRuleContext parent, int invokingState) {
+			super(parent, invokingState);
 		}
+		@Override public int getRuleIndex() { return RULE_expr; }
+	 
+		public ExprContext() { }
+		public void copyFrom(ExprContext ctx) {
+			super.copyFrom(ctx);
+		}
+	}
+	@SuppressWarnings("CheckReturnValue")
+	public static class ReverseNotExprContext extends ExprContext {
+		public TerminalNode REV() { return getToken(ParseRules.REV, 0); }
+		public List<TerminalNode> TILDE() { return getTokens(ParseRules.TILDE); }
+		public TerminalNode TILDE(int i) {
+			return getToken(ParseRules.TILDE, i);
+		}
+		public ExprContext expr() {
+			return getRuleContext(ExprContext.class,0);
+		}
+		public ReverseNotExprContext(ExprContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof ParseRulesListener ) ((ParseRulesListener)listener).enterReverseNotExpr(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof ParseRulesListener ) ((ParseRulesListener)listener).exitReverseNotExpr(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof ParseRulesVisitor ) return ((ParseRulesVisitor<? extends T>)visitor).visitReverseNotExpr(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+	@SuppressWarnings("CheckReturnValue")
+	public static class InputExprContext extends ExprContext {
+		public TerminalNode INPUT() { return getToken(ParseRules.INPUT, 0); }
+		public InputExprContext(ExprContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof ParseRulesListener ) ((ParseRulesListener)listener).enterInputExpr(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof ParseRulesListener ) ((ParseRulesListener)listener).exitInputExpr(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof ParseRulesVisitor ) return ((ParseRulesVisitor<? extends T>)visitor).visitInputExpr(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+	@SuppressWarnings("CheckReturnValue")
+	public static class IdentifierExprContext extends ExprContext {
+		public TerminalNode ID() { return getToken(ParseRules.ID, 0); }
+		public IdentifierExprContext(ExprContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof ParseRulesListener ) ((ParseRulesListener)listener).enterIdentifierExpr(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof ParseRulesListener ) ((ParseRulesListener)listener).exitIdentifierExpr(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof ParseRulesVisitor ) return ((ParseRulesVisitor<? extends T>)visitor).visitIdentifierExpr(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+	@SuppressWarnings("CheckReturnValue")
+	public static class BooleanLiteralExprContext extends ExprContext {
+		public TerminalNode BOOL() { return getToken(ParseRules.BOOL, 0); }
+		public BooleanLiteralExprContext(ExprContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof ParseRulesListener ) ((ParseRulesListener)listener).enterBooleanLiteralExpr(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof ParseRulesListener ) ((ParseRulesListener)listener).exitBooleanLiteralExpr(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof ParseRulesVisitor ) return ((ParseRulesVisitor<? extends T>)visitor).visitBooleanLiteralExpr(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+	@SuppressWarnings("CheckReturnValue")
+	public static class LiteralExprContext extends ExprContext {
+		public TerminalNode LIT() { return getToken(ParseRules.LIT, 0); }
+		public LiteralExprContext(ExprContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof ParseRulesListener ) ((ParseRulesListener)listener).enterLiteralExpr(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof ParseRulesListener ) ((ParseRulesListener)listener).exitLiteralExpr(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof ParseRulesVisitor ) return ((ParseRulesVisitor<? extends T>)visitor).visitLiteralExpr(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+	@SuppressWarnings("CheckReturnValue")
+	public static class BinaryOpExprContext extends ExprContext {
 		public List<ExprContext> expr() {
 			return getRuleContexts(ExprContext.class);
 		}
 		public ExprContext expr(int i) {
 			return getRuleContext(ExprContext.class,i);
 		}
-		public TerminalNode ID() { return getToken(ParseRulesParser.ID, 0); }
-		public TerminalNode OP() { return getToken(ParseRulesParser.OP, 0); }
-		public ExprContext(ParserRuleContext parent, int invokingState) {
-			super(parent, invokingState);
-		}
-		@Override public int getRuleIndex() { return RULE_expr; }
+		public TerminalNode OP() { return getToken(ParseRules.OP, 0); }
+		public BinaryOpExprContext(ExprContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof ParseRulesListener ) ((ParseRulesListener)listener).enterExpr(this);
+			if ( listener instanceof ParseRulesListener ) ((ParseRulesListener)listener).enterBinaryOpExpr(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof ParseRulesListener ) ((ParseRulesListener)listener).exitExpr(this);
+			if ( listener instanceof ParseRulesListener ) ((ParseRulesListener)listener).exitBinaryOpExpr(this);
 		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof ParseRulesVisitor ) return ((ParseRulesVisitor<? extends T>)visitor).visitExpr(this);
+			if ( visitor instanceof ParseRulesVisitor ) return ((ParseRulesVisitor<? extends T>)visitor).visitBinaryOpExpr(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -278,24 +437,37 @@ public class ParseRulesParser extends Parser {
 			switch (_input.LA(1)) {
 			case LIT:
 				{
+				_localctx = new LiteralExprContext(_localctx);
+				_ctx = _localctx;
+				_prevctx = _localctx;
+
 				setState(20);
 				match(LIT);
 				}
 				break;
 			case BOOL:
 				{
+				_localctx = new BooleanLiteralExprContext(_localctx);
+				_ctx = _localctx;
+				_prevctx = _localctx;
 				setState(21);
 				match(BOOL);
 				}
 				break;
 			case INPUT:
 				{
+				_localctx = new InputExprContext(_localctx);
+				_ctx = _localctx;
+				_prevctx = _localctx;
 				setState(22);
 				match(INPUT);
 				}
 				break;
 			case REV:
 				{
+				_localctx = new ReverseNotExprContext(_localctx);
+				_ctx = _localctx;
+				_prevctx = _localctx;
 				setState(23);
 				match(REV);
 				setState(24);
@@ -308,6 +480,9 @@ public class ParseRulesParser extends Parser {
 				break;
 			case ID:
 				{
+				_localctx = new IdentifierExprContext(_localctx);
+				_ctx = _localctx;
+				_prevctx = _localctx;
 				setState(28);
 				match(ID);
 				}
@@ -325,7 +500,7 @@ public class ParseRulesParser extends Parser {
 					_prevctx = _localctx;
 					{
 					{
-					_localctx = new ExprContext(_parentctx, _parentState);
+					_localctx = new BinaryOpExprContext(new ExprContext(_parentctx, _parentState));
 					pushNewRecursionContext(_localctx, _startState, RULE_expr);
 					setState(31);
 					if (!(precpred(_ctx, 4))) throw new FailedPredicateException(this, "precpred(_ctx, 4)");
@@ -369,7 +544,7 @@ public class ParseRulesParser extends Parser {
 	}
 
 	public static final String _serializedATN =
-		"\u0004\u0001\n(\u0002\u0000\u0007\u0000\u0002\u0001\u0007\u0001\u0002"+
+		"\u0004\u0001\b(\u0002\u0000\u0007\u0000\u0002\u0001\u0007\u0001\u0002"+
 		"\u0002\u0007\u0002\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0003"+
 		"\u0000\u000b\b\u0000\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001"+
 		"\u0001\u0003\u0001\u0012\b\u0001\u0001\u0002\u0001\u0002\u0001\u0002\u0001"+
@@ -379,7 +554,7 @@ public class ParseRulesParser extends Parser {
 		"\u0003\u0000\u0002\u0004\u0000\u0000+\u0000\n\u0001\u0000\u0000\u0000"+
 		"\u0002\u0011\u0001\u0000\u0000\u0000\u0004\u001d\u0001\u0000\u0000\u0000"+
 		"\u0006\u0007\u0003\u0002\u0001\u0000\u0007\b\u0003\u0000\u0000\u0000\b"+
-		"\u000b\u0001\u0000\u0000\u0000\t\u000b\u0001\u0000\u0000\u0000\n\u0006"+
+		"\u000b\u0001\u0000\u0000\u0000\t\u000b\u0005\u0000\u0000\u0001\n\u0006"+
 		"\u0001\u0000\u0000\u0000\n\t\u0001\u0000\u0000\u0000\u000b\u0001\u0001"+
 		"\u0000\u0000\u0000\f\r\u0005\u0004\u0000\u0000\r\u0012\u0003\u0004\u0002"+
 		"\u0000\u000e\u000f\u0005\b\u0000\u0000\u000f\u0010\u0005\u0001\u0000\u0000"+
