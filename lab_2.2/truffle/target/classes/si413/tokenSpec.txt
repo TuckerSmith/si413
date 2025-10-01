@@ -1,0 +1,21 @@
+# Truffle Language Tokens
+
+TILDE: ~
+OP_LT: <
+OP_GT: >
+OP_SUB: \?
+OP_ADD: \+
+OP_AND: &
+OP_OR: \|
+BOOL: 0|1
+PRINT: p
+INPUT: i
+REV: r
+LIT: \[([^\[\]\$]|\$\[|\$\]|\$\$)*\]
+ID: [a-z]+
+
+# Ignored tokens for comments and whitespace
+ignore: @.*
+ignore: [\n]
+ignore: [ ]
+ignore: [\t]
