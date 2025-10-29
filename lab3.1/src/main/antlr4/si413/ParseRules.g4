@@ -1,7 +1,7 @@
 parser grammar ParseRules;
 
 tokens {
-  TILDE, OP, BOOL, PRINT, INPUT, REV, LIT, ID
+  YAY, OP, BOOL, PRINT, INPUT, REV, LIT, ID
 }
 
 // prog -> stat prog | EOF (ε)
@@ -10,20 +10,23 @@ prog
   | EOF        #EmptyProg
   ;
 
-// stat -> PRINT expr | ID TILDE expr
+// stat -> PRINT expr | ID YAY expr | IF expr YAY stat YAY | IF expr YAY stat YAY ELSE YAY stat YAY | WHILE expr YAY stat YAY
 stat
-  : PRINT expr               #PrintStat
-  | ID TILDE expr            #AssignStat
+  : PRINT expr                                #PrintStat
+  | ID YAY expr                               #AssignStat
+  | IF expr YAY stat YAY                      #IfStat
+  | IF expr YAY stat YAY ELSE YAY stat YAY    #IfElseStat
+  | WHILE expr YAY stat YAY                   #WhileStat
   ;
 
-// expr -> LIT | BOOL | expr OP expr | INPUT | REV TILDE expr TILDE | ID
+// expr -> LIT | BOOL | expr OP expr | INPUT | REV YAY expr YAY | ID
 // ANTLR preference rules are used here to handle the ambiguous `expr OP expr`
 // Truffle's operators have a low precedence, so they are grouped together.
 expr
-  : ID                                         #Var
-  | LIT                                        #Lit
-  | BOOL                                       #Bool
-  | INPUT                                      #Input
-  | REV TILDE expr TILDE                       #Reverse
-  | expr OP expr                               #BinaryOp
+: ID                                          #Var
+| LIT                                         #Lit
+| BOOL                                        #Bool
+| INPUT                                       #Input
+| REV YAY expr YAY                            #Reverse
+| expr OP expr                                #BinaryOp
   ;

@@ -15,12 +15,15 @@ collaboration: |
     NONE
 
 # come up with an original name for your new langauge
-language_name: truffle
+language_name: txtlng
 
 # explain a little what inspired your language and why it's cool
 language_explanation: |
-    BLAH BLAH
-    BLAH BLAH
+    My language was inspired by the simplicity of truffle.
+    What truffle was missing was conditional statements!
+    In addition, it was not exciting enough. My language
+    uses ! (YAY) instead of ~, and the simplified symbols
+    have been replaced with more verbose text-speak.
 
 # this is the example program that you make up
 example_program: |

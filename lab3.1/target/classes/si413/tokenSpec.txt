@@ -1,12 +1,15 @@
 # tokens for the Truffle language
-TILDE: ~
+YAY: !
 OP: <|>|\?|\+|&|\|
 BOOL: 0|1
-PRINT: p\s
-INPUT: i
-REV: r
+PRINT: chat\s
+INPUT: in
+REV: bkwrd
 LIT: \[([^\[\]\$]|\$\[|\$\]|\$\$)*\]
 ID: [a-z]+
+WHILE: slngs\s
+IF: gvn\s
+ELSE: instd\s
 ignore: @.*
 ignore: [\n]
 ignore: [ \t]

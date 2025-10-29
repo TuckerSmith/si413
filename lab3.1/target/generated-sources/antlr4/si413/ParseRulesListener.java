@@ -56,6 +56,42 @@ public interface ParseRulesListener extends ParseTreeListener {
 	 */
 	void exitAssignStat(ParseRules.AssignStatContext ctx);
 	/**
+	 * Enter a parse tree produced by the {@code IfStat}
+	 * labeled alternative in {@link ParseRules#stat}.
+	 * @param ctx the parse tree
+	 */
+	void enterIfStat(ParseRules.IfStatContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code IfStat}
+	 * labeled alternative in {@link ParseRules#stat}.
+	 * @param ctx the parse tree
+	 */
+	void exitIfStat(ParseRules.IfStatContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code IfElseStat}
+	 * labeled alternative in {@link ParseRules#stat}.
+	 * @param ctx the parse tree
+	 */
+	void enterIfElseStat(ParseRules.IfElseStatContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code IfElseStat}
+	 * labeled alternative in {@link ParseRules#stat}.
+	 * @param ctx the parse tree
+	 */
+	void exitIfElseStat(ParseRules.IfElseStatContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code WhileStat}
+	 * labeled alternative in {@link ParseRules#stat}.
+	 * @param ctx the parse tree
+	 */
+	void enterWhileStat(ParseRules.WhileStatContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code WhileStat}
+	 * labeled alternative in {@link ParseRules#stat}.
+	 * @param ctx the parse tree
+	 */
+	void exitWhileStat(ParseRules.WhileStatContext ctx);
+	/**
 	 * Enter a parse tree produced by the {@code Input}
 	 * labeled alternative in {@link ParseRules#expr}.
 	 * @param ctx the parse tree

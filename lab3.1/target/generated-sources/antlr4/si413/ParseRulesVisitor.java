@@ -39,6 +39,27 @@ public interface ParseRulesVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitAssignStat(ParseRules.AssignStatContext ctx);
 	/**
+	 * Visit a parse tree produced by the {@code IfStat}
+	 * labeled alternative in {@link ParseRules#stat}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitIfStat(ParseRules.IfStatContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code IfElseStat}
+	 * labeled alternative in {@link ParseRules#stat}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitIfElseStat(ParseRules.IfElseStatContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code WhileStat}
+	 * labeled alternative in {@link ParseRules#stat}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitWhileStat(ParseRules.WhileStatContext ctx);
+	/**
 	 * Visit a parse tree produced by the {@code Input}
 	 * labeled alternative in {@link ParseRules#expr}.
 	 * @param ctx the parse tree

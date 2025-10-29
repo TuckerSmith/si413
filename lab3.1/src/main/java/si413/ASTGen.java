@@ -82,8 +82,33 @@ public class ASTGen {
                 return new Stmt.AssignString(name, stringChild);
             }
         }
+
+        @Override
+        public Stmt visitIfStat(ParseRules.IfStatContext ctx) {
+            Expr<Boolean> conditionExpr = (Expr<Boolean>) exprVis.visit(ctx.expr());
+            @SuppressWarnings("unchecked")
+            Stmt thenStmt = progVis.visit(ctx.getChild(1));
+            Stmt elseStmt = null;
+            return new Stmt.IfElse(conditionExpr, thenStmt, elseStmt);
+        }
+
+        @Override
+        public Stmt visitIfElseStat(ParseRules.IfElseStatContext ctx) {
+            Expr<Boolean> conditionExpr = (Expr<Boolean>) exprVis.visit(ctx.expr());
+            @SuppressWarnings("unchecked")
+            Stmt thenStmt = progVis.visit(ctx.getChild(1));
+            Stmt elseStmt = progVis.visit(ctx.getChild(2));
+            return new Stmt.IfElse(conditionExpr, thenStmt, elseStmt);
+        }
+
+        @Override
+        public Stmt visitWhileStat(ParseRules.WhileStatContext ctx) {
+            Expr<Boolean> conditionExpr = (Expr<Boolean>) exprVis.visit(ctx.expr());
+            Stmt doStmt = progVis.visit((ctx.getChild(1))); 
+            return new Stmt.While(conditionExpr, doStmt);
+        }
         
-        // Remove old methods like visitStringPrint and visitBoolPrint
+        
     }
 
 
