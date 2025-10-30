@@ -1,4 +1,4 @@
-# tokens for the Truffle language
+# tokens for the txtlng language
 YAY: !
 OP: <|>|\?|\+|&|\|
 BOOL: 0|1

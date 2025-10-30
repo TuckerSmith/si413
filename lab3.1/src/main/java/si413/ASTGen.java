@@ -70,7 +70,7 @@ public class ASTGen {
             String name = ctx.ID().getText();
             Expr<?> child = exprVis.visit(ctx.expr());
             
-            // Truffle is untyped. We guess the variable type based on the assigned value.
+            // txtlng is untyped. We guess the variable type based on the assigned value.
             // If the expression is a BoolLit, we assume AssignBool. Otherwise, AssignString.
             if (child instanceof Expr.BoolLit) {
                 @SuppressWarnings("unchecked")
@@ -83,31 +83,61 @@ public class ASTGen {
             }
         }
 
+
+        /*
         @Override
         public Stmt visitIfStat(ParseRules.IfStatContext ctx) {
-            Expr<Boolean> conditionExpr = (Expr<Boolean>) exprVis.visit(ctx.expr());
             @SuppressWarnings("unchecked")
-            Stmt thenStmt = progVis.visit(ctx.getChild(1));
+            // get the condition expression
+            Expr<Boolean> conditionExpr = (Expr<Boolean>) exprVis.visit(ctx.expr());
+
+            //get the then statement
+            Stmt thenStmt = stmtVis.visit(ctx.stat());
+
+            // get the else statement
             Stmt elseStmt = null;
+
+            //return
             return new Stmt.IfElse(conditionExpr, thenStmt, elseStmt);
+
+            
+            //Expr<Boolean> conditionExpr = exprVis.visit(ctx.expr());
+            //Expr<Boolean> conditionExpr = (Expr<Boolean>) exprVis.visit(ctx.expr());
+            //@SuppressWarnings("unchecked")
+            //Stmt thenStmt = progVis.visit(ctx.getChild(1));
+            //Stmt elseStmt = null;
+            //return new Stmt.IfElse(conditionExpr, thenStmt, elseStmt);
+            
         }
 
         @Override
         public Stmt visitIfElseStat(ParseRules.IfElseStatContext ctx) {
-            Expr<Boolean> conditionExpr = (Expr<Boolean>) exprVis.visit(ctx.expr());
             @SuppressWarnings("unchecked")
-            Stmt thenStmt = progVis.visit(ctx.getChild(1));
-            Stmt elseStmt = progVis.visit(ctx.getChild(2));
+
+            // get the condition expression
+            Expr<Boolean> conditionExpr = (Expr<Boolean>) exprVis.visit(ctx.expr());
+
+            // get the then statement
+            Stmt thenStmt = stmtVis.visit(ctx.stat(0));
+
+            // get the else statement
+            Stmt elseStmt = stmtVis.visit(ctx.stat(1));
             return new Stmt.IfElse(conditionExpr, thenStmt, elseStmt);
         }
 
         @Override
         public Stmt visitWhileStat(ParseRules.WhileStatContext ctx) {
+            @SuppressWarnings("unchecked")
+
+            // get the condition expression
             Expr<Boolean> conditionExpr = (Expr<Boolean>) exprVis.visit(ctx.expr());
-            Stmt doStmt = progVis.visit((ctx.getChild(1))); 
-            return new Stmt.While(conditionExpr, doStmt);
+
+            // get the loop body statement
+            Stmt bodyStmt = stmtVis.visit(ctx.stat());
+
+            return new Stmt.While(conditionExpr, bodyStmt);
         }
-        
+        */
         
     }
 
@@ -123,7 +153,7 @@ public class ASTGen {
 
         @Override
         public Expr<String> visitLit(ParseRules.LitContext ctx) {
-            // Extract the actual string literal, handling the Truffle-specific
+            // Extract the actual string literal, handling the txtlng-specific
             // escaping of $ chars and removal of brackets [].
             StringBuilder sb = new StringBuilder();
             String raw = ctx.LIT().getText();
@@ -131,7 +161,7 @@ public class ASTGen {
             for (int i = 1; i < raw.length()-1; ++i) {
                 char current = raw.charAt(i);
                 if (current == '$') {
-                    // Truffle escape: consume $ and include the next character
+                    // txtlng escape: consume $ and include the next character
                     if (i + 1 < raw.length() - 1) {
                          i++;
                          current = raw.charAt(i);
@@ -160,7 +190,7 @@ public class ASTGen {
         public Expr<?> visitReverse(ParseRules.ReverseContext ctx) {
             Expr<?> child = visit(ctx.expr());
             
-            // Truffle: r~string~ is Reverse; r~bool~ is Not (logical NOT).
+            // txtlng: r~string~ is Reverse; r~bool~ is Not (logical NOT).
             // We use instance checks on the sub-expression's *static* type.
             if (child instanceof Expr.BoolLit || child instanceof Expr.BoolVar) {
                 // If the child is or can be a boolean, assume logical NOT

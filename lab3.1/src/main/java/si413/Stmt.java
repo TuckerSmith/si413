@@ -67,7 +67,8 @@ public interface Stmt {
             if (condition.eval(interp)) {
                 ifBody.exec(interp);
             }
-            else {
+            // allow for condition that else is null
+            else if (elseBody != null) {
                 elseBody.exec(interp);
             }
         }
