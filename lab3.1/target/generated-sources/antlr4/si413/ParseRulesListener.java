@@ -8,6 +8,16 @@ import org.antlr.v4.runtime.tree.ParseTreeListener;
  */
 public interface ParseRulesListener extends ParseTreeListener {
 	/**
+	 * Enter a parse tree produced by {@link ParseRules#block}.
+	 * @param ctx the parse tree
+	 */
+	void enterBlock(ParseRules.BlockContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link ParseRules#block}.
+	 * @param ctx the parse tree
+	 */
+	void exitBlock(ParseRules.BlockContext ctx);
+	/**
 	 * Enter a parse tree produced by the {@code RegularProg}
 	 * labeled alternative in {@link ParseRules#prog}.
 	 * @param ctx the parse tree
@@ -56,18 +66,6 @@ public interface ParseRulesListener extends ParseTreeListener {
 	 */
 	void exitAssignStat(ParseRules.AssignStatContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code IfStat}
-	 * labeled alternative in {@link ParseRules#stat}.
-	 * @param ctx the parse tree
-	 */
-	void enterIfStat(ParseRules.IfStatContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code IfStat}
-	 * labeled alternative in {@link ParseRules#stat}.
-	 * @param ctx the parse tree
-	 */
-	void exitIfStat(ParseRules.IfStatContext ctx);
-	/**
 	 * Enter a parse tree produced by the {@code IfElseStat}
 	 * labeled alternative in {@link ParseRules#stat}.
 	 * @param ctx the parse tree
@@ -79,6 +77,18 @@ public interface ParseRulesListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitIfElseStat(ParseRules.IfElseStatContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code IfStat}
+	 * labeled alternative in {@link ParseRules#stat}.
+	 * @param ctx the parse tree
+	 */
+	void enterIfStat(ParseRules.IfStatContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code IfStat}
+	 * labeled alternative in {@link ParseRules#stat}.
+	 * @param ctx the parse tree
+	 */
+	void exitIfStat(ParseRules.IfStatContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code WhileStat}
 	 * labeled alternative in {@link ParseRules#stat}.
@@ -92,6 +102,18 @@ public interface ParseRulesListener extends ParseTreeListener {
 	 */
 	void exitWhileStat(ParseRules.WhileStatContext ctx);
 	/**
+	 * Enter a parse tree produced by the {@code ReverseString}
+	 * labeled alternative in {@link ParseRules#expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterReverseString(ParseRules.ReverseStringContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code ReverseString}
+	 * labeled alternative in {@link ParseRules#expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitReverseString(ParseRules.ReverseStringContext ctx);
+	/**
 	 * Enter a parse tree produced by the {@code Input}
 	 * labeled alternative in {@link ParseRules#expr}.
 	 * @param ctx the parse tree
@@ -103,6 +125,18 @@ public interface ParseRulesListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitInput(ParseRules.InputContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code StrVarLookup}
+	 * labeled alternative in {@link ParseRules#expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterStrVarLookup(ParseRules.StrVarLookupContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code StrVarLookup}
+	 * labeled alternative in {@link ParseRules#expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitStrVarLookup(ParseRules.StrVarLookupContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code Reverse}
 	 * labeled alternative in {@link ParseRules#expr}.
@@ -128,18 +162,6 @@ public interface ParseRulesListener extends ParseTreeListener {
 	 */
 	void exitBool(ParseRules.BoolContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code Var}
-	 * labeled alternative in {@link ParseRules#expr}.
-	 * @param ctx the parse tree
-	 */
-	void enterVar(ParseRules.VarContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code Var}
-	 * labeled alternative in {@link ParseRules#expr}.
-	 * @param ctx the parse tree
-	 */
-	void exitVar(ParseRules.VarContext ctx);
-	/**
 	 * Enter a parse tree produced by the {@code Lit}
 	 * labeled alternative in {@link ParseRules#expr}.
 	 * @param ctx the parse tree
@@ -151,6 +173,30 @@ public interface ParseRulesListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitLit(ParseRules.LitContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code NotOp}
+	 * labeled alternative in {@link ParseRules#expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterNotOp(ParseRules.NotOpContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code NotOp}
+	 * labeled alternative in {@link ParseRules#expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitNotOp(ParseRules.NotOpContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code BoolVarLookup}
+	 * labeled alternative in {@link ParseRules#expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterBoolVarLookup(ParseRules.BoolVarLookupContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code BoolVarLookup}
+	 * labeled alternative in {@link ParseRules#expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitBoolVarLookup(ParseRules.BoolVarLookupContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code BinaryOp}
 	 * labeled alternative in {@link ParseRules#expr}.

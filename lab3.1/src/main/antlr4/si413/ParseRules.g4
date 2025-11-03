@@ -1,8 +1,13 @@
 parser grammar ParseRules;
 
 tokens {
-  YAY, OP, BOOL, PRINT, INPUT, REV, LIT, ID, IF, ELSE, WHILE
+  YAY, OP, BOOL, PRINT, INPUT, REV, LIT, ID, IF, ELSE, WHILE, IS, NOT
 }
+
+// block -> stat*
+block
+    : stat*
+    ;
 
 // prog -> stat prog | EOF (ε)
 prog
@@ -10,20 +15,23 @@ prog
   | EOF        #EmptyProg
   ;
 
-// stat -> PRINT expr | ID YAY expr | IF expr YAY stat YAY | IF expr YAY stat YAY ELSE YAY stat YAY | WHILE expr YAY stat YAY
+// stat -> PRINT expr | ID YAY expr | IF expr YAY block YAY | IF expr YAY block YAY ELSE YAY block YAY | WHILE expr YAY block YAY
 stat
   : PRINT expr                                #PrintStat
   | ID YAY expr                               #AssignStat
-  | IF expr YAY stat YAY                      #IfStat
-  | IF expr YAY stat YAY ELSE YAY stat YAY    #IfElseStat
-  | WHILE expr YAY stat YAY                   #WhileStat
+  | IF expr YAY block YAY ELSE YAY block YAY    #IfElseStat
+  | IF expr YAY block YAY                      #IfStat
+  | WHILE expr YAY block YAY                   #WhileStat
   ;
 
-// expr -> LIT | BOOL | expr OP expr | INPUT | REV YAY expr YAY | ID
+// expr -> LIT | BOOL | expr OP expr | INPUT | REV YAY expr YAY | ID | IS ID | NOT YAY expr YAY | REV YAY expr YAY
 // ANTLR preference rules are used here to handle the ambiguous `expr OP expr`
 // txtlng's operators have a low precedence, so they are grouped together.
 expr
-  : ID                                          #Var
+  : IS ID                                       #BoolVarLookup
+  | ID                                          #StrVarLookup 
+  | NOT YAY expr YAY                            #NotOp
+  | REV YAY expr YAY                            #ReverseString
   | LIT                                         #Lit
   | BOOL                                        #Bool
   | INPUT                                       #Input

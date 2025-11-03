@@ -12,7 +12,9 @@ collaboration: |
 
 # leave this as NONE for your initial submission
 changes_on_resubmit: |
-    NONE
+    - Removed Token Descriptions from grammar
+    - Removed log as a CMD token, and added it as an ignore token with its own regex.
+    - Added details for comments to semantics
 
 #### TASK 1 ####
 
@@ -61,7 +63,7 @@ example_output_2: |
 tokens: |
     Token name      Regex
     ----------      -----
-    CMD             1MC|receive|declare|assign|lash|back_signal|signal_less_than|signal_contains|stand_by_and_await|stand_by_or_await|stand_by_not|log
+    CMD             1MC|receive|declare|assign|lash|back_signal|signal_less_than|signal_contains|stand_by_and_await|stand_by_or_await|stand_by_not
     STRING          "([^"]*)"
     BOOL            Aye|Nay
     ID              [A-Za-z_][A-Za-z0-9_]*
@@ -70,6 +72,7 @@ tokens: |
     ARG_SEP         /
     STMT_END        !
     MULTI_CMD_SEP   ;
+    LOG             log.*
     --              [ \t\n]+
 
 
@@ -82,32 +85,28 @@ grammar: |
     StatementList -> Statement StatementList
     StatementList -> Statement
 
-    Statement -> Command OptionalLog STMT_END
     Statement -> Command MULTI_CMD_SEP CommandList STMT_END
 
     CommandList -> Command
     CommandList -> Command MULTI_CMD_SEP CommandList
 
-    OptionalLog -> log
-    OptionalLog -> 
-
     Command -> SinglePayloadCommand
     Command -> TwoPayloadCommand
     Command -> VariableDeclarationCommand
 
-    SinglePayloadCommand -> 1MC < Payload >
-    SinglePayloadCommand -> back_signal < Payload >
-    SinglePayloadCommand -> stand_by_not < Payload >
+    SinglePayloadCommand -> 1MC Payload
+    SinglePayloadCommand -> back_signal Payload
+    SinglePayloadCommand -> stand_by_not Payload
 
-    TwoPayloadCommand -> lash < Payload / Payload >
-    TwoPayloadCommand -> signal_less_than < Payload / Payload >
-    TwoPayloadCommand -> signal_contains < Payload / Payload >
-    TwoPayloadCommand -> stand_by_and_await < Payload / Payload >
-    TwoPayloadCommand -> stand_by_or_await < Payload / Payload >
-    TwoPayloadCommand -> assign < Payload / Payload >
+    TwoPayloadCommand -> lash Payload  Payload
+    TwoPayloadCommand -> signal_less_than Payload  Payload
+    TwoPayloadCommand -> signal_contains Payload  Payload
+    TwoPayloadCommand -> stand_by_and_await Payload  Payload
+    TwoPayloadCommand -> stand_by_or_await Payload  Payload
+    TwoPayloadCommand -> assign Payload Payload
 
-    VariableDeclarationCommand -> receive < ID >
-    VariableDeclarationCommand -> declare < ID >
+    VariableDeclarationCommand -> receive ID
+    VariableDeclarationCommand -> declare ID
 
     Payload -> Literal
     Payload -> ID
@@ -130,6 +129,7 @@ semantics: |
     
     stand_by_and_await, stand_by_or_await, and stand_by_not commands return a boolean (Aye/Nay).
 
+    Comments are denoted using log [comment], and do not span multiple lines.
 
 #### TASK 6 ####
 

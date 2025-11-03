@@ -11,6 +11,12 @@ import org.antlr.v4.runtime.tree.ParseTreeVisitor;
  */
 public interface ParseRulesVisitor<T> extends ParseTreeVisitor<T> {
 	/**
+	 * Visit a parse tree produced by {@link ParseRules#block}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitBlock(ParseRules.BlockContext ctx);
+	/**
 	 * Visit a parse tree produced by the {@code RegularProg}
 	 * labeled alternative in {@link ParseRules#prog}.
 	 * @param ctx the parse tree
@@ -39,19 +45,19 @@ public interface ParseRulesVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitAssignStat(ParseRules.AssignStatContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code IfStat}
-	 * labeled alternative in {@link ParseRules#stat}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitIfStat(ParseRules.IfStatContext ctx);
-	/**
 	 * Visit a parse tree produced by the {@code IfElseStat}
 	 * labeled alternative in {@link ParseRules#stat}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitIfElseStat(ParseRules.IfElseStatContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code IfStat}
+	 * labeled alternative in {@link ParseRules#stat}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitIfStat(ParseRules.IfStatContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code WhileStat}
 	 * labeled alternative in {@link ParseRules#stat}.
@@ -60,12 +66,26 @@ public interface ParseRulesVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitWhileStat(ParseRules.WhileStatContext ctx);
 	/**
+	 * Visit a parse tree produced by the {@code ReverseString}
+	 * labeled alternative in {@link ParseRules#expr}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitReverseString(ParseRules.ReverseStringContext ctx);
+	/**
 	 * Visit a parse tree produced by the {@code Input}
 	 * labeled alternative in {@link ParseRules#expr}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitInput(ParseRules.InputContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code StrVarLookup}
+	 * labeled alternative in {@link ParseRules#expr}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitStrVarLookup(ParseRules.StrVarLookupContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code Reverse}
 	 * labeled alternative in {@link ParseRules#expr}.
@@ -81,19 +101,26 @@ public interface ParseRulesVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitBool(ParseRules.BoolContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code Var}
-	 * labeled alternative in {@link ParseRules#expr}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitVar(ParseRules.VarContext ctx);
-	/**
 	 * Visit a parse tree produced by the {@code Lit}
 	 * labeled alternative in {@link ParseRules#expr}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitLit(ParseRules.LitContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code NotOp}
+	 * labeled alternative in {@link ParseRules#expr}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitNotOp(ParseRules.NotOpContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code BoolVarLookup}
+	 * labeled alternative in {@link ParseRules#expr}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitBoolVarLookup(ParseRules.BoolVarLookupContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code BinaryOp}
 	 * labeled alternative in {@link ParseRules#expr}.

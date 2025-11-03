@@ -1,0 +1,3 @@
+chat [one] + [two] + [three]            @print("one" + "two" + "three")
+chat nt ! nt ! nt ! 1 ! ! !    @print(not not not True)
+

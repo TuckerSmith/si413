@@ -56,8 +56,8 @@ public interface Stmt {
     record PrintBool(Expr<Boolean> child) implements Stmt {
         @Override
         public void exec(Interpreter interp) {
-            if (child.eval(interp)) System.out.println("True");
-            else System.out.println("False");
+            if (child.eval(interp)) System.out.println("1");
+            else System.out.println("0");
         }
     }
 

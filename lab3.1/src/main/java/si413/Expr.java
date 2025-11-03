@@ -56,6 +56,13 @@ public interface Expr<T> {
         }
     }
 
+    record Stringify(Expr<Boolean> child) implements Expr<String> {
+        @Override
+        public String eval(Interpreter interp) {
+            return child.eval(interp).toString(); // Converts Boolean to "true" or "false"
+        }
+    }
+
     // ******* AST node types for expressions that return a Boolean ******** //
 
     record BoolLit(Boolean value) implements Expr<Boolean> {

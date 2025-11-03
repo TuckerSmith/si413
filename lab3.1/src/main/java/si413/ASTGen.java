@@ -1,8 +1,7 @@
 package si413;
 
-import java.util.List;
 import java.util.ArrayList;
-import org.antlr.v4.runtime.tree.RuleNode;
+import java.util.List;
 
 /** This class is used to create the AST from a parse tree.
  * The static method ASTGen.gen(parseTree) is the specific function
@@ -16,7 +15,17 @@ public class ASTGen {
         return new ASTGen().progVis.visit(ptreeRoot);
     }
 
-
+    private class BlockVisitor extends Visitor<Stmt.Block> {
+        @Override
+        public Stmt.Block visitBlock(ParseRules.BlockContext ctx) {
+            // Collects all individual statements found inside the block
+            List<Stmt> children = new ArrayList<>();
+            for (ParseRules.StatContext statCtx : ctx.stat()) {
+                children.add(stmtVis.visit(statCtx));
+            }
+            return new Stmt.Block(children);
+        }
+    }
     private class ProgVisitor extends Visitor<Stmt.Block> {
         @Override
         public Stmt.Block visitRegularProg(ParseRules.RegularProgContext ctx) {
@@ -55,14 +64,14 @@ public class ASTGen {
             if (isBoolean) {
                 @SuppressWarnings("unchecked")
                 Expr<Boolean> boolChild = (Expr<Boolean>) child;
-                return new Stmt.PrintBool(boolChild);
-            } else {
-                // Assume all remaining expression types (StringLit, StrVar, Concat, Reverse, Input)
-                // are String expressions.
-                @SuppressWarnings("unchecked")
-                Expr<String> stringChild = (Expr<String>) child;
-                return new Stmt.PrintString(stringChild);
+                child = new Expr.Stringify(boolChild);
             }
+            // Assume all remaining expression types (StringLit, StrVar, Concat, Reverse, Input)
+            // are String expressions.
+            @SuppressWarnings("unchecked")
+            Expr<String> stringChild = (Expr<String>) child;
+            return new Stmt.PrintString(stringChild);
+            
         }
 
         @Override
@@ -84,7 +93,7 @@ public class ASTGen {
         }
 
 
-        /*
+        
         @Override
         public Stmt visitIfStat(ParseRules.IfStatContext ctx) {
             @SuppressWarnings("unchecked")
@@ -92,24 +101,15 @@ public class ASTGen {
             Expr<Boolean> conditionExpr = (Expr<Boolean>) exprVis.visit(ctx.expr());
 
             //get the then statement
-            Stmt thenStmt = stmtVis.visit(ctx.stat());
+            Stmt.Block thenBlock = blockVis.visit(ctx.block());
 
             // get the else statement
-            Stmt elseStmt = null;
+            Stmt.Block elseBlock = new Stmt.Block(List.of());
 
             //return
-            return new Stmt.IfElse(conditionExpr, thenStmt, elseStmt);
-
-            
-            //Expr<Boolean> conditionExpr = exprVis.visit(ctx.expr());
-            //Expr<Boolean> conditionExpr = (Expr<Boolean>) exprVis.visit(ctx.expr());
-            //@SuppressWarnings("unchecked")
-            //Stmt thenStmt = progVis.visit(ctx.getChild(1));
-            //Stmt elseStmt = null;
-            //return new Stmt.IfElse(conditionExpr, thenStmt, elseStmt);
-            
+            return new Stmt.IfElse(conditionExpr, thenBlock, elseBlock);
         }
-
+        
         @Override
         public Stmt visitIfElseStat(ParseRules.IfElseStatContext ctx) {
             @SuppressWarnings("unchecked")
@@ -117,14 +117,15 @@ public class ASTGen {
             // get the condition expression
             Expr<Boolean> conditionExpr = (Expr<Boolean>) exprVis.visit(ctx.expr());
 
-            // get the then statement
-            Stmt thenStmt = stmtVis.visit(ctx.stat(0));
+            // Call the block visitor for the THEN block (index 0)
+            Stmt.Block thenBlock = blockVis.visit(ctx.block(0));
 
-            // get the else statement
-            Stmt elseStmt = stmtVis.visit(ctx.stat(1));
-            return new Stmt.IfElse(conditionExpr, thenStmt, elseStmt);
+            // Call the block visitor for the ELSE block (index 1)
+            Stmt.Block elseBlock = blockVis.visit(ctx.block(1));
+
+            return new Stmt.IfElse(conditionExpr, thenBlock, elseBlock);
         }
-
+        
         @Override
         public Stmt visitWhileStat(ParseRules.WhileStatContext ctx) {
             @SuppressWarnings("unchecked")
@@ -132,23 +133,30 @@ public class ASTGen {
             // get the condition expression
             Expr<Boolean> conditionExpr = (Expr<Boolean>) exprVis.visit(ctx.expr());
 
-            // get the loop body statement
-            Stmt bodyStmt = stmtVis.visit(ctx.stat());
+            // get the loop body block
+            Stmt.Block bodyBlock = blockVis.visit(ctx.block());
 
-            return new Stmt.While(conditionExpr, bodyStmt);
+            return new Stmt.While(conditionExpr, bodyBlock);
         }
-        */
+        /* */
         
     }
 
 
     // New single visitor for the single grammar rule 'expr'
     private class ExprVisitor extends Visitor<Expr<?>> {
+        // Handles variables used in a string context (e.g., 'chat my_string')
         @Override
-        public Expr<?> visitVar(ParseRules.VarContext ctx) {
-            // Cannot know if StrVar or BoolVar statically. Default to StrVar (most common type).
-            // Runtime type check will fail if used incorrectly.
+        public Expr<?> visitStrVarLookup(ParseRules.StrVarLookupContext ctx) {
+            // Generates the AST node that checks the String Map
             return new Expr.StrVar(ctx.ID().getText());
+        }
+
+        // Handles variables used in a boolean context (e.g., 'gvn IS my_bool')
+        @Override
+        public Expr<?> visitBoolVarLookup(ParseRules.BoolVarLookupContext ctx) {
+            // Generates the AST node that checks the Boolean Map (THIS FIXES THE ERROR)
+            return new Expr.BoolVar(ctx.ID().getText());
         }
 
         @Override
@@ -186,26 +194,26 @@ public class ASTGen {
             return new Expr.Input();
         }
 
+        // 1. NEW Method for Logical NOT
         @Override
-        public Expr<?> visitReverse(ParseRules.ReverseContext ctx) {
-            Expr<?> child = visit(ctx.expr());
-            
-            // txtlng: r~string~ is Reverse; r~bool~ is Not (logical NOT).
-            // We use instance checks on the sub-expression's *static* type.
-            if (child instanceof Expr.BoolLit || child instanceof Expr.BoolVar) {
-                // If the child is or can be a boolean, assume logical NOT
-                @SuppressWarnings("unchecked")
-                Expr<Boolean> boolChild = (Expr<Boolean>) child;
-                return new Expr.Not(boolChild);
-            } else {
-                // Otherwise, assume string reverse
-                @SuppressWarnings("unchecked")
-                Expr<String> stringChild = (Expr<String>) child;
-                return new Expr.Reverse(stringChild);
-            }
+        @SuppressWarnings("unchecked")
+        public Expr<Boolean> visitNotOp(ParseRules.NotOpContext ctx) {
+            // The expression inside 'nt ! expr !' must be a boolean expression
+            Expr<Boolean> child = (Expr<Boolean>) visit(ctx.expr());
+            return new Expr.Not(child);
+        }
+
+        // 2. SIMPLIFIED Method for String Reversal
+        @Override
+        @SuppressWarnings("unchecked")
+        public Expr<String> visitReverseString(ParseRules.ReverseStringContext ctx) {
+            // REV is now guaranteed by the grammar to only operate on string expressions
+            Expr<String> child = (Expr<String>) visit(ctx.expr());
+            return new Expr.Reverse(child);
         }
 
         @Override
+        @SuppressWarnings("unchecked")
         public Expr<?> visitBinaryOp(ParseRules.BinaryOpContext ctx) {
             Expr<?> lhs = visit(ctx.expr(0));
             Expr<?> rhs = visit(ctx.expr(1));
@@ -213,12 +221,22 @@ public class ASTGen {
 
             switch (op) {
                 case "+": // String Concatenation (String return)
+                    // Coerce LHS to String if it's a Boolean type (e.g., from a BoolVar lookup)
+                    if (lhs instanceof Expr.BoolLit || lhs instanceof Expr.BoolVar) {
+                        lhs = new Expr.Stringify((Expr<Boolean>) lhs);
+                    }
+                    // Coerce RHS to String if it's a Boolean type
+                    if (rhs instanceof Expr.BoolLit || rhs instanceof Expr.BoolVar) {
+                        rhs = new Expr.Stringify((Expr<Boolean>) rhs);
+                    }
+                    
+                    // Now both sides are guaranteed to be String expressions before the cast
                     @SuppressWarnings("unchecked")
                     Expr<String> concatLHS = (Expr<String>) lhs;
                     @SuppressWarnings("unchecked")
                     Expr<String> concatRHS = (Expr<String>) rhs;
                     return new Expr.Concat(concatLHS, concatRHS);
-
+                    
                 case "<": // String Less Than (Boolean return)
                     @SuppressWarnings("unchecked")
                     Expr<String> ltLHS = (Expr<String>) lhs;
@@ -269,7 +287,7 @@ public class ASTGen {
         }
     }
 
-
+    private BlockVisitor blockVis = new BlockVisitor();
     private ProgVisitor progVis = new ProgVisitor();
     private StmtVisitor stmtVis = new StmtVisitor();
     private ExprVisitor exprVis = new ExprVisitor(); // Use single expression visitor

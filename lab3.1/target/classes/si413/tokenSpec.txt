@@ -2,14 +2,17 @@
 YAY: !
 OP: <|>|\?|\+|&|\|
 BOOL: 0|1
-PRINT: chat\s
+PRINT: chat
 INPUT: in
 REV: bkwrd
+NOT: nt
+WHILE: slngs
+IF: gvn
+ELSE: instd
+IS: is
 LIT: \[([^\[\]\$]|\$\[|\$\]|\$\$)*\]
 ID: [a-z]+
-WHILE: slngs\s
-IF: gvn\s
-ELSE: instd\s
 ignore: @.*
 ignore: [\n]
 ignore: [ \t]
+ignore: [\s]
