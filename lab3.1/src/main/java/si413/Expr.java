@@ -59,7 +59,7 @@ public interface Expr<T> {
     record Stringify(Expr<Boolean> child) implements Expr<String> {
         @Override
         public String eval(Interpreter interp) {
-            return child.eval(interp).toString(); // Converts Boolean to "true" or "false"
+            return child.eval(interp) ? "True" : "False"; // Converts Boolean to "true" or "false"
         }
     }
 
@@ -96,7 +96,7 @@ public interface Expr<T> {
         public Boolean eval(Interpreter interp) {
             String lval = lhs.eval(interp);
             String rval = rhs.eval(interp);
-            return lval.contains(rval);
+            return rval.contains(lval);
         }
     }
 

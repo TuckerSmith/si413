@@ -11,7 +11,7 @@ IF: gvn
 ELSE: instd
 IS: is
 LIT: \[([^\[\]\$]|\$\[|\$\]|\$\$)*\]
-ID: [a-z]+
+ID: [a-z_]+
 ignore: @.*
 ignore: [\n]
 ignore: [ \t]

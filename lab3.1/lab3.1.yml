@@ -8,8 +8,10 @@ used_ai: Y # remember to turn in an aichat.md file as well
 
 # leave this as NONE for your initial submission
 changes_on_resubmit: |
-    NONE
-
+    - txtlng syntax was cleaned up to avoid ambiguities
+    - Successfully implemented while loops and boolean operations!
+    - Boolean and string operations implemented
+    - dance_program now works in txtlng
 # describe any collaboration or help you got from classmates
 collaboration: |
     NONE
@@ -27,28 +29,76 @@ language_explanation: |
 
 # this is the example program that you make up
 example_program: |
-    BLAH BLAH
-    BLAH BLAH
+    chat [VIBE CHECKER: What's the latest text from your friend?]
+    msg ! in
+    chat [Vibe checking the message: ] + msg
+
+    @ 1. Check for negative phrase ("ok") and assign the boolean result to is_sad
+    @ [ok] ? msg returns 1 (True) if "ok" is found.
+    is_sad ! [ok] ? msg
+
+    @ 2. Check for positive phrase ("later")
+    is_later ! [later] ? msg
+
+    @ 3. Conditional Logic: Vibe Check Passes if NOT sad AND they want to hang later
+    @ Condition: nt is is_sad & is is_later
+    gvn nt ! is is_sad ! & is is_later !
+        chat [VIBE CHECK PASSED! Send a positive reply.]
+        chat [Reply: Sounds good! What time you free later?]
+    !
+    instd !
+        @ Vibe Check Failed: Either sad OR they didn't mention hanging out later
+        gvn is is_sad !
+            chat [VIBE CHECK FAILED. They sound sad. Send support.]
+            chat [Reply: Hey, is everything okay? Let me know if you need to chat.]
+        !
+        instd !
+            chat [VIBE CHECK NEUTRAL. Send neutral affirmation.]
+            chat [Reply: Cool, cool. Let me know when you figure out plans.]
+        !
+    !
 
 example_input_1: |
-    BLAH BLAH
+    hey what are you doing later?
 
 example_output_1: |
-    BLAH BLAH
+    VIBE CHECKER: What's the latest text from your friend?
+    Vibe checking the message: hey what are you doing later?
+    VIBE CHECK PASSED! Send a positive reply.
+    Reply: Sounds good! What time you free later?
 
 example_input_2: |
-    BLAH BLAH
+    im ok, talk soon
 
 example_output_2: |
-    BLAH BLAH
+    VIBE CHECKER: What's the latest text from your friend?
+    Vibe checking the message: im ok, talk soon
+    VIBE CHECK FAILED. They sound sad. Send support.
+    Reply: Hey, is everything okay? Let me know if you need to chat.
 
 
 # your implementation of the "dance" program in your language
 dance_program: |
-    BLAH BLAH
-    BLAH BLAH
+    chat [enter two dance moves]
+    x ! in + [m] + in
+    chat [Let's do the ] + x
+    y ! [mb] ? x
+    gvn x < [mambo] !
+        chat bkwrd ! x !
+        y ! 0
+    !
+    chat is y
+    chat [a] ? x & nt ! is y !
+    timer ! []
+    slngs nt ! [...] ? timer ! !
+        chat [cha]
+        timer ! timer + [.]
+    !
 
 
 # something else your instructor should know?
 any_other_comments_for_me: |
-    NONE
+    This assignment was pretty difficult and involved
+    a lot of debugging and long conversations with Gemini!
+    At the same time, I feel that I am learning a lot
+    about how languages are parsed.

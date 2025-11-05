@@ -1,15 +1,15 @@
 chat [enter two dance moves]
 x ! in + [m] + in
-chat x
+chat [Let's do the ] + x
 y ! [mb] ? x
 gvn x < [mambo] !
     chat bkwrd ! x !
     y ! 0
 !
 chat is y
-chat [a] ? x & nt y
+chat [a] ? x & nt ! is y !
 timer ! []
-slngs nt [] ? timer !
+slngs nt ! [...] ? timer ! !
     chat [cha]
     timer ! timer + [.]
 !

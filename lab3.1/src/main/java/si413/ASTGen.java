@@ -79,13 +79,24 @@ public class ASTGen {
             String name = ctx.ID().getText();
             Expr<?> child = exprVis.visit(ctx.expr());
             
-            // txtlng is untyped. We guess the variable type based on the assigned value.
-            // If the expression is a BoolLit, we assume AssignBool. Otherwise, AssignString.
-            if (child instanceof Expr.BoolLit) {
+            // txtlng is untyped. We guess the variable type based on the assigned expression's static type.
+            
+            // Check for ALL possible expression nodes that return a Boolean (1 or 0)
+            boolean isBoolean = (child instanceof Expr.BoolLit) ||
+                                (child instanceof Expr.BoolVar) ||
+                                (child instanceof Expr.StrLess) ||   // For '<' and '>'
+                                (child instanceof Expr.Contains) ||  // For '?'  <-- CRITICAL ADDITION
+                                (child instanceof Expr.And) ||       // For '&'
+                                (child instanceof Expr.Or) ||        // For '|'
+                                (child instanceof Expr.Not);         // For 'nt !...!' or 'bkwrd !...!'
+            
+            if (isBoolean) {
+                // Assign to the Boolean variable map
                 @SuppressWarnings("unchecked")
                 Expr<Boolean> boolChild = (Expr<Boolean>) child;
                 return new Stmt.AssignBool(name, boolChild);
             } else {
+                // Assign to the String variable map (default for LIT, Concat, Reverse, Input)
                 @SuppressWarnings("unchecked")
                 Expr<String> stringChild = (Expr<String>) child;
                 return new Stmt.AssignString(name, stringChild);

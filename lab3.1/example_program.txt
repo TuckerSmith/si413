@@ -1,0 +1,28 @@
+chat [VIBE CHECKER: What's the latest text from your friend?]
+msg ! in
+chat [Vibe checking the message: ] + msg
+
+@ 1. Check for negative phrase ("ok") and assign the boolean result to is_sad
+@ [ok] ? msg returns 1 (True) if "ok" is found.
+is_sad ! [ok] ? msg
+
+@ 2. Check for positive phrase ("later")
+is_later ! [later] ? msg
+
+@ 3. Conditional Logic: Vibe Check Passes if NOT sad AND they want to hang later
+@ Condition: nt is is_sad & is is_later
+gvn nt ! is is_sad ! & is is_later !
+    chat [VIBE CHECK PASSED! Send a positive reply.]
+    chat [Reply: Sounds good! What time you free later?]
+!
+instd !
+    @ Vibe Check Failed: Either sad OR they didn't mention hanging out later
+    gvn is is_sad !
+        chat [VIBE CHECK FAILED. They sound sad. Send support.]
+        chat [Reply: Hey, is everything okay? Let me know if you need to chat.]
+    !
+    instd !
+        chat [VIBE CHECK NEUTRAL. Send neutral affirmation.]
+        chat [Reply: Cool, cool. Let me know when you figure out plans.]
+    !
+!
