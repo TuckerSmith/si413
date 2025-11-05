@@ -1,0 +1,18 @@
+# tokens for the txtlng language
+YAY: !
+OP: <|>|\?|\+|&|\|
+BOOL: 0|1
+PRINT: chat
+INPUT: in
+REV: bkwrd
+NOT: nt
+WHILE: slngs
+IF: gvn
+ELSE: instd
+IS: is
+LIT: \[([^\[\]\$]|\$\[|\$\]|\$\$)*\]
+ID: [a-z_]+
+ignore: @.*
+ignore: [\n]
+ignore: [ \t]
+ignore: [\s]
