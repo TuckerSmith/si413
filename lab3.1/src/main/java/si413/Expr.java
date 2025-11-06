@@ -96,7 +96,7 @@ public interface Expr<T> {
         public Boolean eval(Interpreter interp) {
             String lval = lhs.eval(interp);
             String rval = rhs.eval(interp);
-            return rval.contains(lval);
+            return lval.contains(rval);
         }
     }
 

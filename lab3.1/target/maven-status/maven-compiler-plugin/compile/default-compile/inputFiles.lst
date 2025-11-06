@@ -2,6 +2,7 @@
 /home/vm/si413/lab3.1/target/generated-sources/antlr4/si413/ParseRules.java
 /home/vm/si413/lab3.1/src/main/java/si413/Stmt.java
 /home/vm/si413/lab3.1/src/main/java/si413/Errors.java
+/home/vm/si413/lab3.1/src/main/java/si413/Stringify.java
 /home/vm/si413/lab3.1/target/generated-sources/antlr4/si413/ParseRulesBaseListener.java
 /home/vm/si413/lab3.1/src/main/java/si413/Interpreter.java
 /home/vm/si413/lab3.1/src/main/java/si413/Expr.java

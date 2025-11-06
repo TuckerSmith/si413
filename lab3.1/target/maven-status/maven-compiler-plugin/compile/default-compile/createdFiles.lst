@@ -5,6 +5,7 @@ si413/ParseRules$ProgContext.class
 si413/Stmt$ExprStmt.class
 si413/Expr$Stringify.class
 si413/Interpreter.class
+si413/Stringify.class
 si413/ParseRules.class
 si413/ParseRulesBaseListener.class
 si413/ParseRules$BoolVarLookupContext.class

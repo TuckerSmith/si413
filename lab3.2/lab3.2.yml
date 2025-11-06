@@ -1,12 +1,12 @@
 # SI413 Lab 3.2: Compiler for Iffy language
 
-your_name: BLAH BLAH
+your_name: Tucker Smith
 
-your_alpha: BLAH
+your_alpha: 265922
 
 used_ai: Y # remember to turn in an aichat.md file as well
 
-language_name: BLAH
+language_name: txtlng
 
 # leave this as NONE for your initial submission
 changes_on_resubmit: |
@@ -18,26 +18,78 @@ collaboration: |
 
 # something else your instructor should know?
 any_other_comments_for_me: |
-    NONE
+    - I spent a few hours trying to fix some errors that I
+    made in the last lab (I changed Expr.Java). As a result,
+    I did not make much headway on lab3.2 proper. Currently,
+    I get a clang/lli error when trying to execute the output
+    of my compiler on my small example.
+
+    - Minor note: I also switched the logical order of contains,
+    in order to avoid making changes to the original Expr.java.
 
 # feel free to copy these example programs and inputs/outputs
 # from the previous lab
 example_program: |
-    BLAH BLAH
-    BLAH BLAH
+    chat [VIBE CHECKER: What's the latest text from your friend?]
+    msg ! in
+    chat [Vibe checking the message: ] + msg
+
+    @ 1. Check for negative phrase ("ok") and assign the boolean result to is_sad
+    @ [ok] ? msg returns 1 (True) if "ok" is found.
+    is_sad ! [ok] ? msg
+
+    @ 2. Check for positive phrase ("later")
+    is_later ! [later] ? msg
+
+    @ 3. Conditional Logic: Vibe Check Passes if NOT sad AND they want to hang later
+    @ Condition: nt is is_sad & is is_later
+    gvn nt ! is is_sad ! & is is_later !
+        chat [VIBE CHECK PASSED! Send a positive reply.]
+        chat [Reply: Sounds good! What time you free later?]
+    !
+    instd !
+        @ Vibe Check Failed: Either sad OR they didn't mention hanging out later
+        gvn is is_sad !
+            chat [VIBE CHECK FAILED. They sound sad. Send support.]
+            chat [Reply: Hey, is everything okay? Let me know if you need to chat.]
+        !
+        instd !
+            chat [VIBE CHECK NEUTRAL. Send neutral affirmation.]
+            chat [Reply: Cool, cool. Let me know when you figure out plans.]
+        !
+    !
 
 example_input_1: |
-    BLAH BLAH
+    hey what are you doing later?
 
 example_output_1: |
-    BLAH BLAH
+    VIBE CHECKER: What's the latest text from your friend?
+    Vibe checking the message: hey what are you doing later?
+    VIBE CHECK PASSED! Send a positive reply.
+    Reply: Sounds good! What time you free later?
 
 example_input_2: |
-    BLAH BLAH
+    im ok, talk soon
 
 example_output_2: |
-    BLAH BLAH
+    VIBE CHECKER: What's the latest text from your friend?
+    Vibe checking the message: im ok, talk soon
+    VIBE CHECK FAILED. They sound sad. Send support.
+    Reply: Hey, is everything okay? Let me know if you need to chat.
 
 dance_program: |
-    BLAH BLAH
-    BLAH BLAH
+    chat [enter two dance moves]
+    x ! in + [m] + in
+    chat [Let's do the ] + x
+    y ! x ? [mb]
+    gvn x < [mambo] !
+        chat bkwrd ! x !
+        y ! 0
+    !
+    chat is y
+    chat x ? [a] & nt ! is y !
+    timer ! []
+    slngs nt ! timer ? [...] ! !
+        chat [cha]
+        timer ! timer + [.]
+    !

@@ -145,7 +145,7 @@ public interface Expr<T> {
         public Boolean eval(Interpreter interp) {
             String lval = lhs.eval(interp);
             String rval = rhs.eval(interp);
-            return lval.contains(rval);
+            return rval.contains(lval);         //changed this
         }
 
         @Override
@@ -153,7 +153,7 @@ public interface Expr<T> {
             String lreg = lhs.compile(comp);
             String rreg = rhs.compile(comp);
             String res = comp.nextRegister();
-            comp.dest().format("  %s = call i1 @string_contains(ptr %s, ptr %s)\n", res, lreg, rreg);
+            comp.dest().format("  %s = call i1 @string_contains(ptr %s, ptr %s)\n", res, rreg, lreg);           //changed this
             return res;
         }
     }
