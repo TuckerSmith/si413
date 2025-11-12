@@ -1,0 +1,37 @@
+# tokens for the AsKeyR language
+ASSIGN:	===>
+BLOCK_START:	\\\\[
+BLOCK_END:	\\\\]
+DATA_PIPE:	|o|
+RETURN:	return ===>
+LIST_START:	<<
+LIST_END:	>>
+SEQUENCE_RANGE:	~>
+PRINT:	\\\\[\\s*o\\s*\\\\]
+INPUT:	-><-
+IF:	?¿?
+ELSE:	!!!
+LOOP:	:o--<
+FUNC_DEF:	:^)
+FUNC_CALL:	->:O
+LIT_TRUE:	^y^
+LIT_FALSE:	x_x
+LIT_NUM:	[0-9]+(\.[0-9]+)?
+GROUP_START:	(
+GROUP_END:	)
+STRING_START:	(
+STRING_END:	)
+LIT_STR:	\([^\(\)]*\)
+OP_ARITH:	\+\+|**|\^\^\^|*o*|//o
+OP_LOGIC:	/\/\ |\|/
+OP_STR:	&><&|<|:|:O-:
+REV:	<---
+NOT:	!o!
+COMMA:	,
+ID:	[a-z_][a-zA-Z0-9_]*
+COMMENT:	//\\
+ignore:	\#.*
+ignore:	@.*
+ignore:	[\n]
+ignore:	[ \t]
+ignore:	[\s]

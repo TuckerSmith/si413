@@ -1,0 +1,79 @@
+# SI413 Lab 4.1: Spec and interpreter for iffy language
+
+your_name: Tucker Smith
+
+your_alpha: 265922
+
+used_ai: Y # remember to turn in an aichat.md file as well
+
+# leave this as NONE for your initial submission
+changes_on_resubmit: |
+    NONE
+
+# describe any collaboration or help you got from classmates
+collaboration: |
+    NONE
+
+# come up with an original name for your new langauge
+language_name: AsKeyR
+
+# explain a little what inspired your language and why it's cool
+language_explanation: |
+    My language uses a mix of ASCII art and R-like syntax, hence 
+    the super clever name. It combines two of my favorite things!
+    Functions are first-class, functions will take 0 to many arguments,
+    lambda functions are supported, typing is dynamic, variable 
+    variables will use lexical scoping, and functions do not need to
+    return a value.
+
+# this is the example program that you make up
+example_program: |
+    //\\ Global function to format and reverse a name.
+    //\\ It takes one argument: 'input_name'
+    
+    // Define a function that reverses a string
+    rev_name ===> :^) (s) [
+        return ===> <--- (s)
+    ]
+    
+    // Define a function that adds a greeting and concatenates the pieces
+    format_greeting ===> :^) (name) [
+        greeting ===> (Hello, )
+        punc ===> (!!!)
+        
+        return ===> greeting &><& name &><& punc
+    ]
+    
+    // Main execution block:
+    [ o ] ((Enter your name (e.g., Alice):))
+    user_input ===> -><- name_var
+    
+    // Process the input using the pipe (|o|)
+    final_output ===> name_var |o| rev_name |o| format_greeting
+    
+    [ o ] (final_output)
+
+example_input_1: |
+    B O B
+
+example_output_1: |
+    Enter your name (e.g., Alice):
+    Hello, B O B!!!
+
+example_input_2: |
+    susan
+
+example_output_2: |
+    Enter your name (e.g., Alice):
+    Hello, nasus!!!
+
+
+# your implementation of the "dinner" program in your language
+dinner_program: |
+    BLAH BLAH
+    BLAH BLAH
+
+
+# something else your instructor should know?
+any_other_comments_for_me: |
+    NONE

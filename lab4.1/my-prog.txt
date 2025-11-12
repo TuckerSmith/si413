@@ -1,0 +1,24 @@
+//\\ Global function to format and reverse a name.
+//\\ It takes one argument: 'input_name'
+
+//\\ Define a function that reverses a string
+rev_name ===> :^) (s) [
+    return ===> <--- (s)
+]
+
+//\\ Define a function that adds a greeting and concatenates the pieces
+format_greeting ===> :^) (name) [
+    greeting ===> (Hello, )
+    punc ===> (!!!)
+    
+    return ===> greeting &><& name &><& punc
+]
+
+//\\ Main execution block:
+[ o ] ((Enter your name (e.g., Alice):))
+user_input ===> -><- name_var
+
+//\\ Process the input using the pipe (|o|)
+final_output ===> name_var |o| rev_name |o| format_greeting
+
+[ o ] (final_output)
