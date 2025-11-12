@@ -1,0 +1,14 @@
+/home/mids/m265922/si413/lab4.2/src/main/java/si413/Stmt.java
+/home/mids/m265922/si413/lab4.2/src/main/java/si413/Frame.java
+/home/mids/m265922/si413/lab4.2/src/main/java/si413/ASTGen.java
+/home/mids/m265922/si413/lab4.2/src/main/java/si413/Tokenizer.java
+/home/mids/m265922/si413/lab4.2/src/main/java/si413/Interpreter.java
+/home/mids/m265922/si413/lab4.2/target/generated-sources/antlr4/si413/ParseRulesBaseListener.java
+/home/mids/m265922/si413/lab4.2/target/generated-sources/antlr4/si413/ParseRulesListener.java
+/home/mids/m265922/si413/lab4.2/src/main/java/si413/Value.java
+/home/mids/m265922/si413/lab4.2/src/main/java/si413/ParseTreeGen.java
+/home/mids/m265922/si413/lab4.2/target/generated-sources/antlr4/si413/ParseRulesBaseVisitor.java
+/home/mids/m265922/si413/lab4.2/src/main/java/si413/Errors.java
+/home/mids/m265922/si413/lab4.2/src/main/java/si413/Expr.java
+/home/mids/m265922/si413/lab4.2/target/generated-sources/antlr4/si413/ParseRulesVisitor.java
+/home/mids/m265922/si413/lab4.2/target/generated-sources/antlr4/si413/ParseRules.java

@@ -1,0 +1,11 @@
+# This is a comment. How original
+bawk "This is how you print" bawk
+
+# This is how we reverse
+bawk chicken -> "reverse" <- chicken bawk
+
+
+bawk "Input True or False" bawk
+name -> stuffing <- name
+
+name2 -> stuffing <- name2
