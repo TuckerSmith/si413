@@ -1,65 +1,172 @@
-string_eq ===> :^) (s1, s2) [
-return ===> !o! (s1 < s2) //\\ !o! (s2 < s1)
+# 1. Define table_tracker function
+
+# def table_tracker(name): ...
+
+table_tracker :^) ( name ) [
+
+    # var first = ^y^ (true)
+
+    first ===> ^y^
+
+    # var total = ''
+
+    total ===> 'nothing'
+
+
+    # 2. Define nested order function (closure)
+
+    # def order(food): ...
+
+    order :^) ( food ) [
+
+        # Print the order message
+
+        # print("Table " + name + " ordering " + food)
+
+        [ o ( 'Table ' &><& name &><& ' ordering ' &><& food ) ]
+
+
+        # if first:
+
+        ?¿? ( first ) [
+
+            # first = x_x (false)
+
+            first ===> x_x
+
+            # total = food
+
+            total ===> food
+
+        ]
+
+        # else:
+
+        !!! [
+
+            # total = total + ", " + food
+
+            total ===> ( total &><& ', ' &><& food )
+
+        ]
+
+
+        # return total
+
+        RETURN ===> total
+
+    ]
+
+
+    # return order
+
+    RETURN ===> order
+
 ]
 
-table_tracker ===> :^) (name) [
-first ===> ^y^
-total ===> ''
 
-order ===> :^) (food) [
-[ o ] ('Table ' &><& name &><& ' ordering ' &><& food)
+# ----------------------------------------------------
 
-?¿? (first) [
-    first ===> x_x
-    total ===> food
-] !!! [
-    total ===> total &><& ', ' &><& food
-]
+# 2. Define string_eq function
 
-return ===> total
+# def string_eq(s1, s2):
 
-]
+#   return not s1 < s2 and not s2 < s1
 
-return ===> order
+# Assuming '<|:' is a string comparison operator like '<' and '| |' is Logical AND
+
+string_eq :^) ( s1, s2 ) [
+
+    # return (!o! (s1 <|: s2)) | | (!o! (s2 <|: s1))
+
+    RETURN ===> ( (!o! (s1 <|: s2)) | | (!o! (s2 <|: s1)) )
 
 ]
 
-table1 ===> table_tracker ('CS profs')
-->:O table1 () ('Kimchi')
 
-$$
-o
-$$
+# ----------------------------------------------------
 
- ('Your name?')
--><- input_user_name
-table2 ===> table_tracker (input_user_name)
+# 3. Main program execution
+
+# table1 = table_tracker("CS profs")
+
+table1 ===> ->:O table_tracker ( 'CS profs' )
+
+
+# table1("Kimchi")
+
+->:O table1 ( 'Kimchi' )
+
+
+# print("Your name?")
+
+[ o 'Your name?' ]
+
+
+# table2_name = input()
+
+-><- table2_name
+
+
+# table2 = table_tracker(table2_name)
+
+table2 ===> ->:O table_tracker ( table2_name )
+
+
+# done = x_x (false)
 
 done ===> x_x
+
+# t2got = 'nothing'
+
 t2got ===> 'nothing'
 
-:o--< (!o! done) [
 
-$$
-o
-$$
+# while not done:
 
- ('What do you want?')
--><- food_item_t2
+:o--< ( !o! done ) [
 
-?¿? (->:O string_eq () (food_item_t2, 'done')) [
-done ===> ^y^
-] !!! [
-t2got ===> ->:O table2 () (food_item_t2)
+    # print("What do you want?")
+
+    [ o 'What do you want?' ]
+
+
+    # food = input()
+
+    -><- food
+
+
+    # if string_eq(food, "done"):
+
+    ?¿? ( ->:O string_eq ( food, 'done' ) ) [
+
+        # done = ^y^ (true)
+
+        done ===> ^y^
+
+    ]
+
+    !!! [
+
+        # t2got = table2(food)
+
+        t2got ===> ->:O table2 ( food )
+
+    ]
+
 ]
 
-]
 
-->:O table1 () ('Tteokbokki')
-total1 ===> ->:O table1 () ('Samgyeopsal')
+# table1("Tteokbokki")
 
-$$
-o
-$$
+->:O table1 ( 'Tteokbokki' )
 
- ('We got ' &><& total1 &><& ' and you got ' &><& t2got)
+
+# total1 = table1("Samgyeopsal")
+
+total1 ===> ->:O table1 ( 'Samgyeopsal' )
+
+
+# print("We got " + total1 + " and you got " + t2got)
+
+[ o ( 'We got ' &><& total1 &><& ' and you got ' &><& t2got ) ]

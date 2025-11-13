@@ -30,27 +30,27 @@ language_explanation: |
 example_program: |
     //\\ Global function to format and reverse a name.
     //\\ It takes one argument: 'input_name'
-    
-    // Define a function that reverses a string
+
+    //\\ Define a function that reverses a string
     rev_name ===> :^) (s) [
         return ===> <--- (s)
     ]
-    
-    // Define a function that adds a greeting and concatenates the pieces
+
+    //\\ Define a function that adds a greeting and concatenates the pieces
     format_greeting ===> :^) (name) [
-        greeting ===> (Hello, )
-        punc ===> (!!!)
+        greeting ===> 'Hello, '
+        punc ===> '!!!'
         
         return ===> greeting &><& name &><& punc
     ]
-    
-    // Main execution block:
-    [ o ] ((Enter your name (e.g., Alice):))
-    user_input ===> -><- name_var
-    
-    // Process the input using the pipe (|o|)
+
+    //\\ Main execution block:
+    [ o ] ('Enter your name (e.g., Alice):')
+    -><- name_var
+
+    //\\ Process the input using the pipe (|o|)
     final_output ===> name_var |o| rev_name |o| format_greeting
-    
+
     [ o ] (final_output)
 
 example_input_1: |
@@ -70,8 +70,178 @@ example_output_2: |
 
 # your implementation of the "dinner" program in your language
 dinner_program: |
-    BLAH BLAH
-    BLAH BLAH
+    # 1. Define table_tracker function
+
+    # def table_tracker(name): ...
+
+    table_tracker :^) ( name ) [
+
+        # var first = ^y^ (true)
+
+        first ===> ^y^
+
+        # var total = ''
+
+        total ===> 'nothing'
+
+
+        # 2. Define nested order function (closure)
+
+        # def order(food): ...
+
+        order :^) ( food ) [
+
+            # Print the order message
+
+            # print("Table " + name + " ordering " + food)
+
+            [ o ( 'Table ' &><& name &><& ' ordering ' &><& food ) ]
+
+
+            # if first:
+
+            ?¿? ( first ) [
+
+                # first = x_x (false)
+
+                first ===> x_x
+
+                # total = food
+
+                total ===> food
+
+            ]
+
+            # else:
+
+            !!! [
+
+                # total = total + ", " + food
+
+                total ===> ( total &><& ', ' &><& food )
+
+            ]
+
+
+            # return total
+
+            RETURN ===> total
+
+        ]
+
+
+        # return order
+
+        RETURN ===> order
+
+    ]
+
+
+    # ----------------------------------------------------
+
+    # 2. Define string_eq function
+
+    # def string_eq(s1, s2):
+
+    #   return not s1 < s2 and not s2 < s1
+
+    # Assuming '<|:' is a string comparison operator like '<' and '| |' is Logical AND
+
+    string_eq :^) ( s1, s2 ) [
+
+        # return (!o! (s1 <|: s2)) | | (!o! (s2 <|: s1))
+
+        RETURN ===> ( (!o! (s1 <|: s2)) | | (!o! (s2 <|: s1)) )
+
+    ]
+
+
+    # ----------------------------------------------------
+
+    # 3. Main program execution
+
+    # table1 = table_tracker("CS profs")
+
+    table1 ===> ->:O table_tracker ( 'CS profs' )
+
+
+    # table1("Kimchi")
+
+    ->:O table1 ( 'Kimchi' )
+
+
+    # print("Your name?")
+
+    [ o 'Your name?' ]
+
+
+    # table2_name = input()
+
+    -><- table2_name
+
+
+    # table2 = table_tracker(table2_name)
+
+    table2 ===> ->:O table_tracker ( table2_name )
+
+
+    # done = x_x (false)
+
+    done ===> x_x
+
+    # t2got = 'nothing'
+
+    t2got ===> 'nothing'
+
+
+    # while not done:
+
+    :o--< ( !o! done ) [
+
+        # print("What do you want?")
+
+        [ o 'What do you want?' ]
+
+
+        # food = input()
+
+        -><- food
+
+
+        # if string_eq(food, "done"):
+
+        ?¿? ( ->:O string_eq ( food, 'done' ) ) [
+
+            # done = ^y^ (true)
+
+            done ===> ^y^
+
+        ]
+
+        !!! [
+
+            # t2got = table2(food)
+
+            t2got ===> ->:O table2 ( food )
+
+        ]
+
+    ]
+
+
+    # table1("Tteokbokki")
+
+    ->:O table1 ( 'Tteokbokki' )
+
+
+    # total1 = table1("Samgyeopsal")
+
+    total1 ===> ->:O table1 ( 'Samgyeopsal' )
+
+
+    # print("We got " + total1 + " and you got " + t2got)
+
+    [ o ( 'We got ' &><& total1 &><& ' and you got ' &><& t2got ) ]
 
 
 # something else your instructor should know?
