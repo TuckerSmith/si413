@@ -8,15 +8,15 @@ rev_name ===> :^) (s) [
 
 //\\ Define a function that adds a greeting and concatenates the pieces
 format_greeting ===> :^) (name) [
-    greeting ===> (Hello, )
-    punc ===> (!!!)
+    greeting ===> 'Hello, '
+    punc ===> '!!!'
     
     return ===> greeting &><& name &><& punc
 ]
 
 //\\ Main execution block:
-[ o ] ((Enter your name (e.g., Alice):))
-user_input ===> -><- name_var
+[ o ] ('Enter your name (e.g., Alice):')
+-><- name_var
 
 //\\ Process the input using the pipe (|o|)
 final_output ===> name_var |o| rev_name |o| format_greeting

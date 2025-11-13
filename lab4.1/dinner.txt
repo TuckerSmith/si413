@@ -1,0 +1,65 @@
+string_eq ===> :^) (s1, s2) [
+return ===> !o! (s1 < s2) //\\ !o! (s2 < s1)
+]
+
+table_tracker ===> :^) (name) [
+first ===> ^y^
+total ===> ''
+
+order ===> :^) (food) [
+[ o ] ('Table ' &><& name &><& ' ordering ' &><& food)
+
+?¿? (first) [
+    first ===> x_x
+    total ===> food
+] !!! [
+    total ===> total &><& ', ' &><& food
+]
+
+return ===> total
+
+]
+
+return ===> order
+
+]
+
+table1 ===> table_tracker ('CS profs')
+->:O table1 () ('Kimchi')
+
+$$
+o
+$$
+
+ ('Your name?')
+-><- input_user_name
+table2 ===> table_tracker (input_user_name)
+
+done ===> x_x
+t2got ===> 'nothing'
+
+:o--< (!o! done) [
+
+$$
+o
+$$
+
+ ('What do you want?')
+-><- food_item_t2
+
+?¿? (->:O string_eq () (food_item_t2, 'done')) [
+done ===> ^y^
+] !!! [
+t2got ===> ->:O table2 () (food_item_t2)
+]
+
+]
+
+->:O table1 () ('Tteokbokki')
+total1 ===> ->:O table1 () ('Samgyeopsal')
+
+$$
+o
+$$
+
+ ('We got ' &><& total1 &><& ' and you got ' &><& t2got)

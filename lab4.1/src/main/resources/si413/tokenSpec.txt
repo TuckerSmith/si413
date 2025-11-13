@@ -1,37 +1,33 @@
 # tokens for the AsKeyR language
+RETURN:	return
 ASSIGN:	===>
-BLOCK_START:	\\\\[
-BLOCK_END:	\\\\]
-DATA_PIPE:	|o|
-RETURN:	return ===>
+PRINT:	\[\s*o\s*\]
+BLOCK_START:	\[
+BLOCK_END:	\]
+DATA_PIPE:	\|o\|
 LIST_START:	<<
 LIST_END:	>>
 SEQUENCE_RANGE:	~>
-PRINT:	\\\\[\\s*o\\s*\\\\]
-INPUT:	-><-
-IF:	?¿?
+INPUT:	\-\>\<\-
+IF:	\?\¿\?
 ELSE:	!!!
 LOOP:	:o--<
-FUNC_DEF:	:^)
+FUNC_DEF:	:\^\)
 FUNC_CALL:	->:O
 LIT_TRUE:	^y^
 LIT_FALSE:	x_x
 LIT_NUM:	[0-9]+(\.[0-9]+)?
-GROUP_START:	(
-GROUP_END:	)
-STRING_START:	(
-STRING_END:	)
-LIT_STR:	\([^\(\)]*\)
-OP_ARITH:	\+\+|**|\^\^\^|*o*|//o
-OP_LOGIC:	/\/\ |\|/
+LIT_STR:	\'[^']*\'
+GROUP_START:	\(
+GROUP_END:	\)
+OP_ARITH:	\+\+|\*\*|\^\^\^|\*o\*|//o
+OP_LOGIC:	/ \ / | \| \|
 OP_STR:	&><&|<|:|:O-:
 REV:	<---
 NOT:	!o!
 COMMA:	,
 ID:	[a-z_][a-zA-Z0-9_]*
-COMMENT:	//\\
+ignore:	//\\\\.*
 ignore:	\#.*
 ignore:	@.*
-ignore:	[\n]
-ignore:	[ \t]
-ignore:	[\s]
+ignore:	[ \t\r\n]+
