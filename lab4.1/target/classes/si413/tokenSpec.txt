@@ -14,7 +14,7 @@ ELSE:	!!!
 LOOP:	:o--<
 FUNC_DEF:	:\^\)
 FUNC_CALL:	->:O
-LIT_TRUE:	^y^
+LIT_TRUE:	\^y\^
 LIT_FALSE:	x_x
 LIT_NUM:	[0-9]+(\.[0-9]+)?
 LIT_STR:	\'[^']*\'
