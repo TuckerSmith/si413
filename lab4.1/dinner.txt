@@ -1,146 +1,144 @@
-# 1. Define table_tracker function
+//\\ 1. Define table_tracker function
 
-# def table_tracker(name): ...
+//\\ def table_tracker(name): ...
 
 table_tracker :^) ( name ) [
 
-    # var first = ^y^ (true)
+    //\\ var first = ^y^ (true)
 
     first ===> ^y^
 
-    # var total = ''
+    //\\ var total = ''
 
     total ===> 'nothing'
 
 
-    # 2. Define nested order function (closure)
+    //\\ 2. Define nested order function (closure)
 
-    # def order(food): ...
+    //\\ def order(food): ...
 
     order :^) ( food ) [
 
-        # Print the order message
+        //\\ Print the order message
 
-        # print("Table " + name + " ordering " + food)
+        //\\ print("Table " + name + " ordering " + food)
 
-        [ o ( 'Table ' &><& name &><& ' ordering ' &><& food ) ]
+        [ o ] ( 'Table ' &><& name &><& ' ordering ' &><& food )
 
 
-        # if first:
+        //\\ if first:
 
         ?¿? ( first ) [
 
-            # first = x_x (false)
+            //\\ first = x_x (false)
 
             first ===> x_x
 
-            # total = food
+            //\\ total = food
 
             total ===> food
 
         ]
 
-        # else:
+        //\\ else:
 
         !!! [
 
-            # total = total + ", " + food
+            //\\ total = total + ", " + food
 
             total ===> ( total &><& ', ' &><& food )
 
         ]
 
 
-        # return total
+        //\\ return total
 
-        RETURN ===> total
+        return ===> total
 
     ]
 
 
-    # return order
+    //\\ return order
 
-    RETURN ===> order
+    return ===> order
 
 ]
 
 
-# ----------------------------------------------------
+//\\ ----------------------------------------------------
 
-# 2. Define string_eq function
+//\\ 2. Define string_eq function
 
-# def string_eq(s1, s2):
+//\\ def string_eq(s1, s2):
 
-#   return not s1 < s2 and not s2 < s1
-
-# Assuming '<|:' is a string comparison operator like '<' and '| |' is Logical AND
+//\\   return not s1 < s2 and not s2 < s1
 
 string_eq :^) ( s1, s2 ) [
 
-    # return (!o! (s1 <|: s2)) | | (!o! (s2 <|: s1))
+    //\\ return (!o! (s1 < s2)) | | (!o! (s2 < s1))
 
-    RETURN ===> ( (!o! (s1 <|: s2)) | | (!o! (s2 <|: s1)) )
+    return ===> ( (!o! (s1 < s2)) | | (!o! (s2 < s1)) )
 
 ]
 
 
-# ----------------------------------------------------
+//\\ ----------------------------------------------------
 
-# 3. Main program execution
+//\\ 3. Main program execution
 
-# table1 = table_tracker("CS profs")
+//\\ table1 = table_tracker("CS profs")
 
 table1 ===> ->:O table_tracker ( 'CS profs' )
 
 
-# table1("Kimchi")
+//\\ table1("Kimchi")
 
 ->:O table1 ( 'Kimchi' )
 
 
-# print("Your name?")
+//\\ print("Your name?")
 
-[ o 'Your name?' ]
+[ o ] 'Your name?'
 
 
-# table2_name = input()
+//\\ table2_name = input()
 
 -><- table2_name
 
 
-# table2 = table_tracker(table2_name)
+//\\ table2 = table_tracker(table2_name)
 
 table2 ===> ->:O table_tracker ( table2_name )
 
 
-# done = x_x (false)
+//\\ done = x_x (false)
 
 done ===> x_x
 
-# t2got = 'nothing'
+//\\ t2got = 'nothing'
 
 t2got ===> 'nothing'
 
 
-# while not done:
+//\\ while not done:
 
 :o--< ( !o! done ) [
 
-    # print("What do you want?")
+    //\\ print("What do you want?")
 
-    [ o 'What do you want?' ]
+    [ o ] 'What do you want?'
 
 
-    # food = input()
+    //\\ food = input()
 
     -><- food
 
 
-    # if string_eq(food, "done"):
+    //\\ if string_eq(food, "done"):
 
     ?¿? ( ->:O string_eq ( food, 'done' ) ) [
 
-        # done = ^y^ (true)
+        //\\ done = ^y^ (true)
 
         done ===> ^y^
 
@@ -148,7 +146,7 @@ t2got ===> 'nothing'
 
     !!! [
 
-        # t2got = table2(food)
+        //\\ t2got = table2(food)
 
         t2got ===> ->:O table2 ( food )
 
@@ -157,16 +155,16 @@ t2got ===> 'nothing'
 ]
 
 
-# table1("Tteokbokki")
+//\\ table1("Tteokbokki")
 
 ->:O table1 ( 'Tteokbokki' )
 
 
-# total1 = table1("Samgyeopsal")
+//\\ total1 = table1("Samgyeopsal")
 
 total1 ===> ->:O table1 ( 'Samgyeopsal' )
 
 
-# print("We got " + total1 + " and you got " + t2got)
+//\\ print("We got " + total1 + " and you got " + t2got)
 
-[ o ( 'We got ' &><& total1 &><& ' and you got ' &><& t2got ) ]
+[ o ] ( 'We got ' &><& total1 &><& ' and you got ' &><& t2got )
