@@ -23,7 +23,20 @@ public interface Expr<T> {
 
         @Override
         public String compile(Compiler comp) {
-            return comp.addStringLit(value);
+            String litName = comp.addStringLit(value);
+        
+            // 1. Determine the exact type of the literal (e.g., [11 x i8] for "hello wrld\00")
+            String litType = String.format("[%d x i8]", value.length() + 1);
+            
+            // 2. Generate a GEP instruction to convert the array pointer to an i8* pointer
+            // The GEP instruction gets the address of the first element of the array.
+            // Format: %res = getelementptr inbounds <array_type>, <array_type>* @litN, i64 0, i64 0
+            String res = comp.nextRegister();
+            comp.dest().format("  %s = getelementptr inbounds %s, %s* %s, i64 0, i64 0\n", res, litType, litType, litName);
+            
+            // The register 'res' now holds a correctly typed i8* pointer for use in calls.
+            return res;
+            
         }
     }
 
@@ -38,7 +51,15 @@ public interface Expr<T> {
 
         @Override
         public String compile(Compiler comp) {
-            throw new UnsupportedOperationException("delete this exception and implement this method!"); // TODO
+            // get reg with ptr of var
+            String addrReg = comp.getStringVarAddress(name);
+
+            //load value of ptr from addr
+            String res = comp.nextRegister();
+            comp.dest().format("  %s = load i8*, i8** %s\n", res, addrReg);
+
+            //return reg with str
+            return res;
         }
     }
 
@@ -55,7 +76,7 @@ public interface Expr<T> {
             String lreg = lhs.compile(comp);
             String rreg = rhs.compile(comp);
             String res = comp.nextRegister();
-            comp.dest().format("  %s = call ptr @concat_strings(ptr %s, ptr %s)\n", res, lreg, rreg);
+            comp.dest().format("  %s = call i8* @concat_strings(i8* %s, i8* %s)\n", res, lreg, rreg);
             return res;
         }
     }
@@ -71,7 +92,7 @@ public interface Expr<T> {
         public String compile(Compiler comp) {
             String chreg = child.compile(comp);
             String res = comp.nextRegister();
-            comp.dest().format("  %s = call ptr @reverse_string(ptr %s)\n", res, chreg);
+            comp.dest().format("  %s = call i8* @reverse_string(i8* %s)\n", res, chreg);
             return res;
         }
     }
@@ -85,7 +106,7 @@ public interface Expr<T> {
         @Override
         public String compile(Compiler comp) {
             String res = comp.nextRegister();
-            comp.dest().format("  %s = call ptr @read_line()\n", res);
+            comp.dest().format("  %s = call i8* @read_line()\n", res);
             return res;
         }
     }
@@ -118,7 +139,15 @@ public interface Expr<T> {
 
         @Override
         public String compile(Compiler comp) {
-            throw new UnsupportedOperationException("delete this exception and implement this method!"); // TODO
+            // get reg iwth addr of bool
+            String addrReg = comp.getBoolVarAddress(name);
+
+            // load bool val from addr
+            String res = comp.nextRegister();
+            comp.dest().format("  %s = load i1, i1* %s\n", res, addrReg);
+
+            // return reg with bool
+            return res;
         }
     }
 
@@ -135,7 +164,7 @@ public interface Expr<T> {
             String lreg = lhs.compile(comp);
             String rreg = rhs.compile(comp);
             String res = comp.nextRegister();
-            comp.dest().format("  %s = call i1 @string_less(ptr %s, ptr %s)\n", res, lreg, rreg);
+            comp.dest().format("  %s = call i1 @string_less(i8* %s, i8* %s)\n", res, lreg, rreg);
             return res;
         }
     }
@@ -145,7 +174,7 @@ public interface Expr<T> {
         public Boolean eval(Interpreter interp) {
             String lval = lhs.eval(interp);
             String rval = rhs.eval(interp);
-            return rval.contains(lval);         //changed this
+            return lval.contains(rval);         //changed this
         }
 
         @Override
@@ -153,7 +182,7 @@ public interface Expr<T> {
             String lreg = lhs.compile(comp);
             String rreg = rhs.compile(comp);
             String res = comp.nextRegister();
-            comp.dest().format("  %s = call i1 @string_contains(ptr %s, ptr %s)\n", res, rreg, lreg);           //changed this
+            comp.dest().format("  %s = call i1 @string_contains(i8* %s, i8* %s)\n", res, lreg, rreg);           //changed this
             return res;
         }
     }

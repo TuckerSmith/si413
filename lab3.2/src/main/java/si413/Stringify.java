@@ -23,7 +23,7 @@ public record Stringify(Expr<Boolean> child) implements Expr<String> {
         // 3. Call the runtime function to convert the i1 to a String pointer (ptr).
         // Assumes a runtime function named @bool_to_string exists.
         // It takes the i1 register (chreg) and returns a ptr (String*).
-        comp.dest().format("  %s = call ptr @bool_to_string(i1 %s)\n", res, chreg);
+        comp.dest().format("  %s = call i8* @bool_to_string(i1 %s)\n", res, chreg);
         
         // 4. Return the register holding the resulting String pointer.
         return res;

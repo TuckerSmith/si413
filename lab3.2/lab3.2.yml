@@ -30,52 +30,36 @@ any_other_comments_for_me: |
 # feel free to copy these example programs and inputs/outputs
 # from the previous lab
 example_program: |
-    chat [VIBE CHECKER: What's the latest text from your friend?]
-    msg ! in
-    chat [Vibe checking the message: ] + msg
+    chat [Hey, what's your name?]
 
-    @ 1. Check for negative phrase ("ok") and assign the boolean result to is_sad
-    @ [ok] ? msg returns 1 (True) if "ok" is found.
-    is_sad ! [ok] ? msg
+    name ! in @ Get user input
+    chat [Analyzing name...]
 
-    @ 2. Check for positive phrase ("later")
-    is_later ! [later] ? msg
+    @ Check for equality: name == "hunter"
+    is_hunter ! name ? [hunter]
 
-    @ 3. Conditional Logic: Vibe Check Passes if NOT sad AND they want to hang later
-    @ Condition: nt is is_sad & is is_later
-    gvn nt ! is is_sad ! & is is_later !
-        chat [VIBE CHECK PASSED! Send a positive reply.]
-        chat [Reply: Sounds good! What time you free later?]
+    gvn is is_hunter !
+        chat [wow! it is such an honor to meet you. I love you<3]
     !
     instd !
-        @ Vibe Check Failed: Either sad OR they didn't mention hanging out later
-        gvn is is_sad !
-            chat [VIBE CHECK FAILED. They sound sad. Send support.]
-            chat [Reply: Hey, is everything okay? Let me know if you need to chat.]
-        !
-        instd !
-            chat [VIBE CHECK NEUTRAL. Send neutral affirmation.]
-            chat [Reply: Cool, cool. Let me know when you figure out plans.]
-        !
+        chat [K. Nice to meet you.]
     !
 
 example_input_1: |
-    hey what are you doing later?
+    tucker
 
 example_output_1: |
-    VIBE CHECKER: What's the latest text from your friend?
-    Vibe checking the message: hey what are you doing later?
-    VIBE CHECK PASSED! Send a positive reply.
-    Reply: Sounds good! What time you free later?
+    Hey, what's your name?
+    Analyzing name...
+    K. Nice to meet you.
 
 example_input_2: |
-    im ok, talk soon
+    hunter
 
 example_output_2: |
-    VIBE CHECKER: What's the latest text from your friend?
-    Vibe checking the message: im ok, talk soon
-    VIBE CHECK FAILED. They sound sad. Send support.
-    Reply: Hey, is everything okay? Let me know if you need to chat.
+    Hey, what's your name?
+    Analyzing name...
+    wow! it is such an honor to meet you. I love you<3
 
 dance_program: |
     chat [enter two dance moves]

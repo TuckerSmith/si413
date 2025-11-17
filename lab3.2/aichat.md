@@ -1790,3 +1790,2991 @@ Would you like me to help you implement the compile methods for StrVar and BoolV
 
 
 Your USNA chats aren’t used to improve our models. Gemini can make mistakes, so double-check it. Your privacy & Gemini Opens in a new window
+
+ Gemini
+Enterprise logo
+Recent
+Compiling Variable Access in LLVM
+how ot do this with lli: clang -S -emit-llvm -Xclang -no-opaque-pointers preamble.c -o preamble.ll
+Pytest CI/CD Configuration and Reports
+Mocking Server Connections for Pytest
+AsKeyR Translation of Python Closure
+ANTLR String Literal Tokenizer Error
+ANTLR Token Rule Refinement
+I am making a new programming language. It will be called AsKeyR, and will use simple ASCII art ( :^), :o--<, etc) as its tokens. it will syntactically resemble R, hence the name. can you help me come up with ideas for the lanugae?
+Fixing Interpreter Without Modifying AST
+C Function to Duplicate Strings
+Testing `if/else` in `txtlng`
+AST Generation and Control Flow Fixes
+C If Statement Parse Rules
+Building a JavaScript API Game Frontend
+Conversation with Gemini
+
+hey gemini, i am working to add features to an antlr language. program is broke in to tokenizer.java, astgen.java, interpreter.java, compiler.java expr.java, stmt.java, and a few others. Most of my work will be in expr.java, compiler.java, and stmt.java. There are two lines in expr.java that I need to change, both of the compile functions. where should i go?
+
+Hello! Based on the Expr.java file you provided and your description, the two methods you need to implement in Expr.java are the compile methods for the variable access record types that currently throw an UnsupportedOperationException.
+
+These are:
+
+    StrVar (for String variables):
+    Java
+
+record StrVar(String name) implements Expr<String> {
+    // ... eval method ...
+    @Override
+    public String compile(Compiler comp) {
+        throw new UnsupportedOperationException("delete this exception and implement this method!"); // TODO
+    }
+}
+
+BoolVar (for Boolean variables):
+Java
+
+    record BoolVar(String name) implements Expr<Boolean> {
+        // ... eval method ...
+        @Override
+        public String compile(Compiler comp) {
+            throw new UnsupportedOperationException("delete this exception and implement this method!"); // TODO
+        }
+    }
+
+🛠️ How to Implement the compile Methods
+
+The purpose of these methods is to generate the LLVM IR code to read the value of the variable and return the register that holds the result. Since you are accessing a variable, you'll need to:
+
+    Load the variable's value from memory (where it was previously allocated and stored).
+
+    Return the new register holding the loaded value.
+
+Both variable types (StrVar and BoolVar) will require a call to a compiler utility method (likely in your Compiler.java file) that retrieves the LLVM register where the variable's memory location (its address) is stored. Then, you'll use an LLVM load instruction.
+
+1. StrVar.compile(Compiler comp)
+
+For a string variable, the variable will be a ptr (pointer) to the string data.
+Java
+
+// Inside record StrVar(String name)
+@Override
+public String compile(Compiler comp) {
+    // 1. Get the register that holds the *address* (ptr) of the variable.
+    String addrReg = comp.getStringVarAddress(name);
+
+    // 2. Load the actual *value* (ptr) from that address.
+    String res = comp.nextRegister();
+    comp.dest().format("  %s = load ptr, ptr %s\n", res, addrReg);
+
+    // 3. Return the register containing the string value.
+    return res;
+}
+
+2. BoolVar.compile(Compiler comp)
+
+For a boolean variable, the variable will be an i1 (1-bit integer, used for booleans in LLVM IR).
+Java
+
+// Inside record BoolVar(String name)
+@Override
+public String compile(Compiler comp) {
+    // 1. Get the register that holds the *address* (ptr) of the variable.
+    String addrReg = comp.getBoolVarAddress(name);
+
+    // 2. Load the actual *value* (i1) from that address.
+    String res = comp.nextRegister();
+    comp.dest().format("  %s = load i1, ptr %s\n", res, addrReg);
+
+    // 3. Return the register containing the boolean value.
+    return res;
+}
+
+🧭 Next Steps in Compiler.java
+
+For the above implementations to work, you'll need to ensure your Compiler.java file has:
+
+    Methods to retrieve the LLVM address registers for variables, such as:
+
+        getStringVarAddress(String name)
+
+        getBoolVarAddress(String name)
+
+    A system to track the allocated memory addresses (ptr registers) for all active string and boolean variables within the scope of the current compilation unit.
+
+Would you like me to help you draft the necessary tracking and retrieval methods in Compiler.java?
+
+for context, here is Compiler.java. still only trying to fix the methods in expr.java.
+
+Thanks for providing Compiler.java. The Expr.java methods I drafted rely on helper methods within Compiler.java to get the memory addresses of variables. Since your goal is to fix the compile methods in Expr.java, you'll need to add the variable tracking and address retrieval logic to Compiler.java.
+
+Here are the necessary additions to Compiler.java to support the StrVar.compile and BoolVar.compile implementations in Expr.java.
+
+🛠️ Required Additions to Compiler.java
+
+You need to add two java.util.Map fields to Compiler.java to track the LLVM register name (address) for each variable and two accessor methods to retrieve these addresses.
+
+1. New Fields (Variable Tracking)
+
+Add these two private maps near the top, with the other state variables (like dest and nextRegNum):
+Java
+
+// Inside public class Compiler { ...
+    // ... existing fields ...
+    private PrintWriter dest;
+    private int nextRegNum = 1;
+    private List<String> literals = new ArrayList<>();
+
+    // --- NEW FIELDS for Variable Tracking ---
+    // Map variable name (String) to its LLVM address register (e.g., "%addr1")
+    private java.util.Map<String, String> stringVarAddresses = new java.util.HashMap<>();
+    private java.util.Map<String, String> boolVarAddresses = new java.util.HashMap<>();
+    // ----------------------------------------
+
+    // ... existing methods ...
+
+2. New Accessor Methods
+
+These methods will be called from Expr.java's StrVar.compile and BoolVar.compile to get the address registers.
+Java
+
+// Inside public class Compiler { ...
+
+    /** Returns the LLVM address register for a string variable. */
+    public String getStringVarAddress(String name) {
+        String addrReg = stringVarAddresses.get(name);
+        if (addrReg == null) {
+            // This case should ideally be an error if the language requires declaration
+            return Errors.error(String.format("compiler error: undefined string variable address %s", name));
+        }
+        return addrReg;
+    }
+
+    /** Returns the LLVM address register for a boolean variable. */
+    public String getBoolVarAddress(String name) {
+        String addrReg = boolVarAddresses.get(name);
+        if (addrReg == null) {
+            // This case should ideally be an error if the language requires declaration
+            return Errors.error(String.format("compiler error: undefined bool variable address %s", name));
+        }
+        return addrReg;
+    }
+
+    // You will also need methods for *setting* the addresses, which will be
+    // used in Stmt.java (e.g., in a "VarDecl" or "Assign" statement):
+
+    /** Records the LLVM address register for a string variable. */
+    public void setStringVarAddress(String name, String addrReg) {
+        stringVarAddresses.put(name, addrReg);
+    }
+
+    /** Records the LLVM address register for a boolean variable. */
+    public void setBoolVarAddress(String name, String addrReg) {
+        boolVarAddresses.put(name, addrReg);
+    }
+
+// ... existing methods ...
+}
+
+✅ Completed Expr.java compile Methods
+
+With those additions to Compiler.java, you can now fully implement the methods in Expr.java.
+
+1. StrVar.compile
+
+Java
+
+// Inside Expr.java, in record StrVar(String name)
+@Override
+public String compile(Compiler comp) {
+    // 1. Get the register that holds the *address* (ptr) of the variable.
+    // e.g., returns "%addr1"
+    String addrReg = comp.getStringVarAddress(name);
+
+    // 2. Load the actual *value* (ptr) from that address.
+    // The value of a String variable is a 'ptr' to the string data.
+    String res = comp.nextRegister();
+    comp.dest().format("  %s = load ptr, ptr %s\n", res, addrReg);
+
+    // 3. Return the register containing the string value.
+    return res;
+}
+
+2. BoolVar.compile
+
+Java
+
+// Inside Expr.java, in record BoolVar(String name)
+@Override
+public String compile(Compiler comp) {
+    // 1. Get the register that holds the *address* (ptr) of the variable.
+    // e.g., returns "%addr2"
+    String addrReg = comp.getBoolVarAddress(name);
+
+    // 2. Load the actual *value* (i1) from that address.
+    // The value of a Boolean variable is an 'i1' (1-bit integer).
+    String res = comp.nextRegister();
+    comp.dest().format("  %s = load i1, ptr %s\n", res, addrReg);
+
+    // 3. Return the register containing the boolean value.
+    return res;
+}
+
+Do you want to move on to fixing the compile methods in Stmt.java, which will be responsible for allocating and storing these variable values?
+
+sure!
+
+That's a great next step! The assignment statements (AssignString and AssignBool) are crucial for variable handling in the compiler.
+
+You need to implement the compile method in both AssignString and AssignBool. These methods will generate the LLVM IR to:
+
+    Compile the right-hand side expression to get the value.
+
+    Get the LLVM address register of the variable from the Compiler.
+
+    Use the store instruction to place the value into the variable's memory location.
+
+Here are the corrected implementations for AssignString and AssignBool in your Stmt.java file.
+
+1. AssignString.compile(Compiler comp)
+
+The string value is a pointer (ptr), so the store instruction must specify the type as ptr.
+Java
+
+// Inside record AssignString(String name, Expr<String> child)
+@Override
+public void compile(Compiler comp) {
+    // 1. Compile the right-hand side expression to get the string value (ptr register).
+    String rvalReg = child.compile(comp);
+
+    // 2. Get the address register of the string variable (ptr to the memory location).
+    // This method assumes the variable has already been allocated in the Compiler.
+    String addrReg = comp.getStringVarAddress(name);
+
+    // 3. Store the value into the variable's memory address.
+    // Format: store ptr <value_reg>, ptr <address_reg>
+    comp.dest().format("  store ptr %s, ptr %s\n", rvalReg, addrReg);
+}
+
+2. AssignBool.compile(Compiler comp)
+
+The boolean value in LLVM IR is a 1-bit integer (i1), so the store instruction must specify the type as i1.
+Java
+
+// Inside record AssignBool(String name, Expr<Boolean> child)
+@Override
+public void compile(Compiler comp) {
+    // 1. Compile the right-hand side expression to get the boolean value (i1 register).
+    String rvalReg = child.compile(comp);
+
+    // 2. Get the address register of the boolean variable (ptr to the memory location).
+    // This method assumes the variable has already been allocated in the Compiler.
+    String addrReg = comp.getBoolVarAddress(name);
+
+    // 3. Store the value into the variable's memory address.
+    // Format: store i1 <value_reg>, ptr <address_reg>
+    comp.dest().format("  store i1 %s, ptr %s\n", rvalReg, addrReg);
+}
+
+3. Control Flow Statements (IfElse and While)
+
+To implement IfElse and While, you'll need a mechanism for generating unique labels in your LLVM IR, similar to how you generate unique registers. You'll need to add a label counter to Compiler.java.
+
+Required Update to Compiler.java
+
+You should add a label counter field and a method to increment it.
+Java
+
+// Conceptual addition to Compiler.java
+public class Compiler {
+    // ... existing fields ...
+    private int nextRegNum = 1;
+    private int nextLabelNum = 1; // <--- ADD THIS
+
+    // ... existing methods ...
+
+    /** Creates a new label number and returns it. */
+    public int nextLabelNum() {
+        return nextLabelNum++;
+    }
+}
+
+4. IfElse.compile(Compiler comp)
+
+This uses the br i1 (conditional branch) and br (unconditional branch) instructions.
+Java
+
+// Inside record IfElse(Expr<Boolean> condition, Stmt ifBody, Stmt elseBody)
+@Override
+public void compile(Compiler comp) {
+    // Get a unique label number for this if-else block
+    int labelNum = comp.nextLabelNum();
+    String ifTrueLabel = String.format("if_true_L%d", labelNum);
+    String ifFalseLabel = String.format("if_false_L%d", labelNum);
+    String ifEndLabel = String.format("if_end_L%d", labelNum);
+
+    // 1. Compile the condition
+    String condReg = condition.compile(comp);
+
+    // 2. Conditional branch to the true or false block
+    comp.dest().format("  br i1 %s, label %%%s, label %%%s\n", condReg, ifTrueLabel, ifFalseLabel);
+
+    // 3. Emit the 'if-true' label and compile the body
+    comp.dest().format("%s:\n", ifTrueLabel);
+    ifBody.compile(comp);
+    
+    // Unconditional branch to the end label
+    comp.dest().format("  br label %%%s\n", ifEndLabel);
+
+    // 4. Emit the 'if-false' label and compile the body
+    comp.dest().format("%s:\n", ifFalseLabel);
+    elseBody.compile(comp);
+
+    // Unconditional branch to the end label
+    comp.dest().format("  br label %%%s\n", ifEndLabel);
+
+    // 5. Emit the 'if-end' label (merge point)
+    comp.dest().format("%s:\n", ifEndLabel);
+}
+
+5. While.compile(Compiler comp)
+
+This uses an unconditional branch to jump to a header, a conditional branch in the header to check the loop condition, and a branch back to the header at the end of the body.
+Java
+
+// Inside record While(Expr<Boolean> condition, Stmt body)
+@Override
+public void compile(Compiler comp) {
+    // Get a unique label number for this while loop
+    int labelNum = comp.nextLabelNum();
+    String loopStartLabel = String.format("loop_start_L%d", labelNum);
+    String loopBodyLabel = String.format("loop_body_L%d", labelNum);
+    String loopEndLabel = String.format("loop_end_L%d", labelNum);
+
+    // 1. Unconditional branch to the loop start (header)
+    comp.dest().format("  br label %%%s\n", loopStartLabel);
+
+    // 2. Emit the loop header label
+    comp.dest().format("%s:\n", loopStartLabel);
+    
+    // 3. Compile the condition
+    String condReg = condition.compile(comp);
+
+    // 4. Conditional branch to the body or to the end
+    comp.dest().format("  br i1 %s, label %%%s, label %%%s\n", condReg, loopBodyLabel, loopEndLabel);
+
+    // 5. Emit the loop body label and compile the body
+    comp.dest().format("%s:\n", loopBodyLabel);
+    body.compile(comp);
+
+    // 6. Unconditional branch back to the loop start (header)
+    comp.dest().format("  br label %%%s\n", loopStartLabel);
+
+    // 7. Emit the loop end label
+    comp.dest().format("%s:\n", loopEndLabel);
+}
+
+These changes should complete the required compile methods in Stmt.java. Remember that the Compiler class now needs the variable address tracking methods and the nextLabelNum method for all of this to work correctly!
+
+[ERROR] COMPILATION ERROR : 
+
+[ERROR] /home/vm/si413/lab3.2/src/main/java/si413/Expr.java:[42,34] cannot find symbol
+
+  symbol:   method getStringVarAddress(java.lang.String)
+
+  location: variable comp of type si413.Compiler
+
+[ERROR] /home/vm/si413/lab3.2/src/main/java/si413/Expr.java:[130,34] cannot find symbol
+
+  symbol:   method getBoolVarAddress(java.lang.String)
+
+  location: variable comp of type si413.Compiler
+
+[ERROR] /home/vm/si413/lab3.2/src/main/java/si413/Stmt.java:[61,34] cannot find symbol
+
+  symbol:   method getStringVarAddress(java.lang.String)
+
+  location: variable comp of type si413.Compiler
+
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.11.0:compile (default-compile) on project compiler: Compilation failure: Compilation failure: 
+
+[ERROR] /home/vm/si413/lab3.2/src/main/java/si413/Expr.java:[42,34] cannot find symbol
+
+[ERROR]   symbol:   method getStringVarAddress(java.lang.String)
+
+[ERROR]   location: variable comp of type si413.Compiler
+
+[ERROR] /home/vm/si413/lab3.2/src/main/java/si413/Expr.java:[130,34] cannot find symbol
+
+[ERROR]   symbol:   method getBoolVarAddress(java.lang.String)
+
+[ERROR]   location: variable comp of type si413.Compiler
+
+[ERROR] /home/vm/si413/lab3.2/src/main/java/si413/Stmt.java:[61,34] cannot find symbol
+
+[ERROR]   symbol:   method getStringVarAddress(java.lang.String)
+
+[ERROR]   location: variable comp of type si413.Compiler
+
+[ERROR] -> [Help 1]
+
+[ERROR] 
+
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+
+[ERROR] 
+
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+
+The compilation errors you're seeing are because the methods getStringVarAddress and getBoolVarAddress are being called in your Expr.java and Stmt.java files, but they haven't been defined yet in the Compiler.java class.
+
+This confirms the necessary additions we discussed earlier for Compiler.java. You need to add the variable tracking maps and the getter/setter methods to Compiler.java.
+
+🛠️ Required Code for Compiler.java
+
+Please add the following fields and methods to your Compiler.java file. This provides the functionality needed to track where variables are allocated in LLVM IR memory, thus resolving the "cannot find symbol" errors.
+
+1. Imports and Fields
+
+Make sure you have these imports (they are likely already there, but confirm you are using java.util.Map and java.util.HashMap):
+Java
+
+import java.util.Map; // Make sure this import exists
+import java.util.HashMap; // Make sure this import exists
+// ... other imports ...
+
+Add these two fields to track the addresses of the string and boolean variables, near your other compiler state fields:
+Java
+
+public class Compiler {
+    // ... existing fields ...
+    private int nextRegNum = 1;
+    private List<String> literals = new ArrayList<>();
+
+    // --- NEW FIELDS for Variable Tracking ---
+    private Map<String, String> stringVarAddresses = new HashMap<>();
+    private Map<String, String> boolVarAddresses = new HashMap<>();
+    // ----------------------------------------
+    
+    // ...
+
+2. Accessor and Setter Methods
+
+Add these methods to Compiler.java. They are essential for Expr.java (using the get methods) and for Stmt.java (using the set methods, which will handle the allocation/declaration).
+Java
+
+// Inside public class Compiler { ...
+
+    /** Returns the LLVM address register for a string variable. */
+    public String getStringVarAddress(String name) {
+        String addrReg = stringVarAddresses.get(name);
+        if (addrReg == null) {
+            // Error handling for accessing an undeclared variable
+            return Errors.error(String.format("compiler error: undefined string variable address %s", name));
+        }
+        return addrReg;
+    }
+
+    /** Returns the LLVM address register for a boolean variable. */
+    public String getBoolVarAddress(String name) {
+        String addrReg = boolVarAddresses.get(name);
+        if (addrReg == null) {
+            // Error handling for accessing an undeclared variable
+            return Errors.error(String.format("compiler error: undefined bool variable address %s", name));
+        }
+        return addrReg;
+    }
+
+    /** Records the LLVM address register for a string variable (used in allocation/assignment). */
+    public void setStringVarAddress(String name, String addrReg) {
+        stringVarAddresses.put(name, addrReg);
+    }
+
+    /** Records the LLVM address register for a boolean variable (used in allocation/assignment). */
+    public void setBoolVarAddress(String name, String addrReg) {
+        boolVarAddresses.put(name, addrReg);
+    }
+
+    // ...
+}
+
+Once you add these methods to Compiler.java, the compilation errors you pasted will be resolved, as the compiler will now find the symbols it's looking for.
+
+Would you like to review the full implementation of the compile methods in Expr.java and Stmt.java one last time to ensure they use these new methods correctly?
+
+ok, i just forgot to save something. aside from that, what do i need to do to fix this error? ptr type is only supported in -opaque-pointers mode
+
+@stdin = external global ptr, align 8
+
+                         ^
+
+lli: lli: var_ass_ex.ll:6:26: error: expected type
+
+@stdin = external global ptr, align 8
+
+This is a classic error when moving between different LLVM versions or environments that default to different pointer modes. The error message:
+
+    ptr type is only supported in -opaque-pointers mode
+
+means your LLVM interpreter (lli) is running in a mode that requires typed pointers (like i8*) instead of the opaque pointer type (ptr).
+
+To fix this, you must change every instance of ptr that represents a string pointer (which is a pointer to a sequence of bytes, or i8) to i8* in your generated LLVM IR code.
+
+Here are all the required code changes across your files.
+
+1. Fixes in Expr.java
+
+You need to update the compile methods for every expression that deals with string pointers.
+
+StrVar.compile (Variable Load)
+
+Java
+
+// Inside record StrVar(String name)
+@Override
+public String compile(Compiler comp) {
+    String addrReg = comp.getStringVarAddress(name);
+    String res = comp.nextRegister();
+    // CHANGE: load ptr -> load i8*
+    comp.dest().format("  %s = load i8*, ptr %s\n", res, addrReg);
+    return res;
+}
+
+Concat.compile
+
+Java
+
+// Inside record Concat(Expr<String> lhs, Expr<String> rhs)
+@Override
+public String compile(Compiler comp) {
+    String lreg = lhs.compile(comp);
+    String rreg = rhs.compile(comp);
+    String res = comp.nextRegister();
+    // CHANGE: ptr %s -> i8* %s (for args and return type)
+    comp.dest().format("  %s = call i8* @concat_strings(i8* %s, i8* %s)\n", res, lreg, rreg);
+    return res;
+}
+
+Reverse.compile
+
+Java
+
+// Inside record Reverse(Expr<String> child)
+@Override
+public String compile(Compiler comp) {
+    String chreg = child.compile(comp);
+    String res = comp.nextRegister();
+    // CHANGE: ptr %s -> i8* %s (for arg and return type)
+    comp.dest().format("  %s = call i8* @reverse_string(i8* %s)\n", res, chreg);
+    return res;
+}
+
+Input.compile
+
+Java
+
+// Inside record Input()
+@Override
+public String compile(Compiler comp) {
+    String res = comp.nextRegister();
+    // CHANGE: call ptr -> call i8*
+    comp.dest().format("  %s = call i8* @read_line()\n", res);
+    return res;
+}
+
+StrLess.compile
+
+Java
+
+// Inside record StrLess(Expr<String> lhs, Expr<String> rhs)
+@Override
+public String compile(Compiler comp) {
+    String lreg = lhs.compile(comp);
+    String rreg = rhs.compile(comp);
+    String res = comp.nextRegister();
+    // CHANGE: ptr %s -> i8* %s (for args)
+    comp.dest().format("  %s = call i1 @string_less(i8* %s, i8* %s)\n", res, lreg, rreg);
+    return res;
+}
+
+Contains.compile
+
+Java
+
+// Inside record Contains(Expr<String> lhs, Expr<String> rhs)
+@Override
+public String compile(Compiler comp) {
+    String lreg = lhs.compile(comp);
+    String rreg = rhs.compile(comp);
+    String res = comp.nextRegister();
+    // CHANGE: ptr %s -> i8* %s (for args)
+    comp.dest().format("  %s = call i1 @string_contains(i8* %s, i8* %s)\n", res, rreg, lreg);
+    return res;
+}
+
+2. Fixes in Stmt.java
+
+You must update the compile methods for string assignment and printing.
+
+AssignString.compile (Variable Store)
+
+Assuming your implementation for the previously asked assignment statement was:
+Java
+
+// Inside record AssignString(String name, Expr<String> child)
+@Override
+public void compile(Compiler comp) {
+    String rvalReg = child.compile(comp);
+    String addrReg = comp.getStringVarAddress(name);
+    // CHANGE: store ptr -> store i8*
+    comp.dest().format("  store i8* %s, ptr %s\n", rvalReg, addrReg);
+}
+
+PrintString.compile
+
+Java
+
+// Inside record PrintString(Expr<String> child)
+@Override
+public void compile(Compiler comp) {
+    String chreg = child.compile(comp);
+    // CHANGE: ptr %s -> i8* %s
+    comp.dest().format("  call i32 @puts(i8* %s)\n", chreg);
+}
+
+3. Fixes in Compiler.java (Allocation) and preamble.ll
+
+Fixes in Variable Allocation Code
+
+In your code that handles variable declaration (likely in a part of Stmt.java you haven't shown, or implicitly in your Compiler.java), the alloca instruction for string variables must also be changed:
+
+    Old: addrReg = alloca ptr, align 8
+
+    New: addrReg = alloca i8*, align 8
+
+Fixes in preamble.ll
+
+The error message pointed directly to this line, which is typically in your preamble.ll file (or wherever your external declarations are):
+
+    Change Global Variable Declarations:
+
+        Old: @stdin = external global ptr, align 8
+
+        New: @stdin = external global i8*, align 8
+
+    Change Function Declarations: All external function declarations for strings must also use i8* for string arguments and return types.
+
+        declare i8* @read_line()
+
+        declare i8* @concat_strings(i8*, i8*)
+
+        declare i8* @reverse_string(i8*)
+
+        declare i1 @string_less(i8*, i8*)
+
+        declare i1 @string_contains(i8*, i8*)
+
+        declare i32 @puts(i8*)
+
+        declare void @print_bool(i1)
+
+i didnt change anything yet. here is my preamble.c and preamble.ll, if that helps at all.
+
+This is extremely helpful! The preamble.ll file confirms the issue is exactly what the previous error suggested: your environment is running an older LLVM toolchain that requires typed pointers (i8*) for string data instead of the opaque pointer type (ptr).
+
+The most direct fix is to update preamble.ll and all the Java code generating LLVM IR to use i8* for strings.
+
+1. Fixes in preamble.ll
+
+You must replace every instance of ptr that represents a C-style string pointer (which is a char* or i8*) with i8*.
+
+A. Global Variables
+
+Update these lines at the top of preamble.ll:
+
+    Old: @stdin = external global ptr, align 8
+
+    New: @stdin = external global i8*, align 8
+
+    Old: @stderr = external global ptr, align 8
+
+    New: @stderr = external global i8*, align 8
+
+B. Function Definitions and Declarations
+
+In every function signature that returns or accepts a string pointer, change ptr to i8*:
+
+Function	Old Signature (LLVM Type)	New Signature (LLVM Type)
+@reverse_string	
+
+define dso_local **ptr** @reverse_string(**ptr** noundef %0)
+
+	define dso_local **i8*** @reverse_string(**i8*** noundef %0)
+@strlen	
+
+declare i64 @strlen(**ptr** noundef)
+
+	declare i64 @strlen(**i8*** noundef)
+@malloc	declare noalias **ptr** @malloc(i64 noundef)	(Leave as ptr or change to i8*, but often left as ptr if it's generic allocation)
+@concat_strings	
+
+define dso_local **ptr** @concat_strings(**ptr** noundef %0, **ptr** noundef %1)
+
+	define dso_local **i8*** @concat_strings(**i8*** noundef %0, **i8*** noundef %1)
+@strcpy	
+
+declare **ptr** @strcpy(**ptr** noundef, **ptr** noundef)
+
+	declare **i8*** @strcpy(**i8*** noundef, **i8*** noundef)
+@strcat	
+
+declare **ptr** @strcat(**ptr** noundef, **ptr** noundef)
+
+	declare **i8*** @strcat(**i8*** noundef, **i8*** noundef)
+@read_line	
+
+define dso_local **ptr** @read_line()
+
+	define dso_local **i8*** @read_line()
+@getline	declare i64 @getline(**ptr** noundef, ptr noundef, **ptr** noundef)	declare i64 @getline(**i8*** noundef, ptr noundef, **i8*** noundef)
+@puts	
+
+declare i32 @puts(**ptr** noundef)
+
+	declare i32 @puts(**i8*** noundef)
+@strcmp	
+
+declare i32 @strcmp(**ptr** noundef, **ptr** noundef)
+
+	declare i32 @strcmp(**i8*** noundef, **i8*** noundef)
+@strstr	
+
+declare **ptr** @strstr(**ptr** noundef, **ptr** noundef)
+
+	declare **i8*** @strstr(**i8*** noundef, **i8*** noundef)
+
+C. Instructions (alloca, load, store)
+
+Within the function bodies, you must update the type used for string variables:
+
+    Change alloca ptr to alloca i8* (for string variables):
+
+    E.g., In @reverse_string, change %2 = alloca ptr, align 8 to %2 = alloca i8*, align 8.
+
+Change store ptr to store i8* (when storing a string value).
+
+Change load ptr to load i8* (when loading a string value).
+
+2. Fixes in Java Code (Expr.java and Stmt.java)
+
+As discussed previously, you must update the generated code in your Java files to match the new i8* types in the preamble. You need to perform the type replacement for all string operations (concatenation, reverse, input, comparison, assignment, printing, etc.).
+
+For example, in Expr.java for Concat:
+
+    Old: comp.dest().format(" %s = call ptr @concat_strings(ptr %s, ptr %s)\n", res, lreg, rreg);
+
+    New: comp.dest().format(" %s = call i8* @concat_strings(i8* %s, i8* %s)\n", res, lreg, rreg);
+
+You must apply this pattern consistently across all the methods that interact with strings. Once you apply all the i8* changes to your Java code and update the preamble.ll file, your compilation error will be resolved.
+
+preamble.ll is compiled from preamble.c
+
+That's a key piece of information. Since preamble.ll is generated directly from preamble.c using a C compiler (like clang), the LLVM pointer error isn't due to your hand-written code, but rather the version of clang/LLVM you are using to compile the C file.
+
+The preamble.ll file itself states: !5 = !{!"Debian clang version 16.0.6 (15~deb12u1)"}
+
+Clang version 16 and higher generally default to using opaque pointers (ptr), but your environment (specifically the LLVM tool used to execute or link the resulting IR, lli) seems to be expecting typed pointers (i8*).
+
+There are two ways to fix this without manually editing preamble.ll:
+
+1. ⚙️ Fix the C Compilation Command (Recommended)
+
+The best solution is to tell the clang compiler to generate LLVM IR that uses the older, typed pointer format by adding a flag when compiling preamble.c.
+
+If you are compiling preamble.c to preamble.ll using a command like:
+Bash
+
+clang -S -emit-llvm preamble.c -o preamble.ll
+
+You should change it to include the -Xclang -no-opaque-pointers flag:
+Bash
+
+clang -S -emit-llvm -Xclang -no-opaque-pointers preamble.c -o preamble.ll
+
+This flag forces Clang to use typed pointers (i8*, i32*, etc.), which should make the generated preamble.ll compatible with your older LLVM linker/interpreter.
+
+2. 📝 Manually Fix Java Code and preamble.ll (The Hard Way)
+
+If you cannot change the compilation command, you must revert the LLVM types from ptr to i8* everywhere, which involves the changes I listed previously:
+
+    Edit preamble.ll: Manually search and replace every instance of ptr with i8* for string-related types (function signatures, global variables, and alloca/load/store instructions for strings).
+
+    Edit Expr.java and Stmt.java: Change all your compile methods that generate LLVM IR for string functions (@concat_strings, @puts, @read_line, etc.) to use i8* instead of ptr.
+
+Recommendation: Try Method 1 first, as it maintains consistency between your source C code and the generated LLVM IR, which is cleaner and less error-prone.
+
+see attached files. i did that, still getting this error: ./run.sh small_ex.txt small_ex.ll
+
+vm@vm:~/si413/lab3.2$ lli small_ex.ll 
+
+small_ex.ll:225:18: warning: ptr type is only supported in -opaque-pointers mode
+
+  call i32 @puts(ptr @lit1)
+
+                 ^
+
+lli: lli: small_ex.ll:225:18: error: expected type
+
+  call i32 @puts(ptr @lit1)
+
+                 ^
+
+    Query successful
+
+You've made significant progress! The small_ex.ll file shows that the preamble.ll part is now correctly using typed pointers (i8*). However, the code generated by your Compiler.java for the main function is still using the old, incompatible type, ptr.
+
+The error is specifically in the main function generated by your compiler for the input chat [hello wrld]:
+
+Code snippet
+
+define i32 @main() {
+  call i32 @puts(ptr @lit1) // <-- THIS LINE HAS THE ERROR
+  ret i32 0
+}
+@lit1 = constant [11 x i8] c"hello wrld\00"
+
+The call i32 @puts(ptr @lit1) line is incorrect because the function signature for @puts in the preamble is now: declare i32 @puts(i8* noundef).
+
+🛠️ The Fix: Update PrintString.compile
+
+The code generating this faulty line is in your PrintString.compile method within Stmt.java. You need to change the type from ptr to i8* there.
+
+In Stmt.java, find the PrintString record and modify the compile method:
+Java
+
+record PrintString(Expr<String> child) implements Stmt {
+    @Override
+    public void exec(Interpreter interp) {
+        System.out.println(child.eval(interp));
+    }
+
+    @Override
+    public void compile(Compiler comp) {
+        String chreg = child.compile(comp);
+        // FIX: Change 'ptr' to 'i8*' to match the preamble's function declaration
+        comp.dest().format("  call i32 @puts(i8* %s)\n", chreg);
+    }
+}
+
+Since the example small_ex.txt only contains a simple print statement, fixing this single line in Stmt.java will allow the provided test case to compile and run successfully.
+
+Why the Error Persisted
+
+Your C compiler generated a fixed preamble.ll using i8*, but your Java compiler logic was still hardcoded to emit the outdated ptr type when generating statements, leading to a type mismatch error when the LLVM interpreter (lli) tried to execute the code.
+
+After making the change above, run your compiler again. The generated small_ex.ll should now contain:
+Code snippet
+
+define i32 @main() {
+  call i32 @puts(i8* @lit1) // <--- CORRECTED LINE
+  ret i32 0
+}
+@lit1 = constant [11 x i8] c"hello wrld\00"
+
+This is compatible with the preamble.ll declarations.
+
+lli small_ex.ll lli: lli: small_ex.ll:228:18: error: forward reference and definition of global have different types@lit1 = constant [11 x i8] c"hello wrld\00"
+
+The error:
+
+    error: forward reference and definition of global have different types @lit1 = constant [11 x i8] c"hello wrld\00"
+
+This error occurs because the type of the global literal @lit1 is an array pointer ([N x i8]*), but in LLVM versions with strict type checking, using @lit1 directly as a function argument requires it to be explicitly converted to a byte pointer (i8*). Your compiler is currently generating a direct reference (e.g., call i32 @puts(i8* @lit1)), which causes the conflict.
+
+The solution is to modify StringLit.compile in Expr.java to generate an explicit Get Element Pointer (GEP) instruction. This instruction correctly converts the global array type into the i8* type expected by functions like @puts.
+
+🛠️ Fix in Expr.java (StringLit.compile)
+
+You need to replace the body of the compile method in your StringLit record.
+Java
+
+// In Expr.java
+record StringLit(String value) implements Expr<String> {
+    @Override
+    public String eval(Interpreter interp) {
+        return value;
+    }
+
+    @Override
+    public String compile(Compiler comp) {
+        String litName = comp.addStringLit(value);
+        
+        // 1. Determine the exact type of the literal (e.g., [11 x i8] for "hello wrld\00")
+        String litType = String.format("[%d x i8]", value.length() + 1);
+        
+        // 2. Generate a GEP instruction to convert the array pointer to an i8* pointer
+        // The GEP instruction gets the address of the first element of the array.
+        // Format: %res = getelementptr inbounds <array_type>, <array_type>* @litN, i64 0, i64 0
+        String res = comp.nextRegister();
+        comp.dest().format("  %s = getelementptr inbounds %s, %s* %s, i64 0, i64 0\n", res, litType, litType, litName);
+        
+        // The register 'res' now holds a correctly typed i8* pointer for use in calls.
+        return res;
+    }
+}
+
+Explanation of the Fix
+
+    When your compiler calls comp.addStringLit(value), it records the string and gives it a name, say @lit1.
+
+    The literal is defined later as a global array: @lit1 = constant [11 x i8]...
+
+    The new compile method generates: %regX = getelementptr inbounds [11 x i8], [11 x i8]* @lit1, i64 0, i64 0
+
+    This instruction converts the global array reference (@lit1, which is an array type) into a general pointer to the first byte (i8*) and stores it in %regX.
+
+    The subsequent call in Stmt.java's PrintString.compile will then correctly use this register: call i32 @puts(i8* %regX).
+
+This explicit GEP instruction resolves the forward reference/type mismatch error.
+
+do i need to replace all ptrs everywhere with i8*
+
+That's a great question, as not all ptr types need to be replaced.
+
+No, you do not need to replace every instance of ptr. Only the ptr type that specifically refers to a C-style string (char*) needs to be replaced with the typed pointer i8*.
+
+Here's a breakdown of what needs to change and what must stay the same, based on your files:
+
+1. Where to Change ptr to i8* (String Data)
+
+This applies to any pointer holding a memory address for a string value.
+LLVM Context	Example of what to change	Rationale
+String Functions	declare i8* @reverse_string(i8* noundef)	The char* C type maps to i8* in LLVM IR.
+String I/O	declare i32 @puts(i8* noundef)	The argument to puts is a string pointer.
+Variable Storage	store i8* %value, i8** %addr, align 8	String variable storage must be i8*.
+Literal Use	call i32 @puts(i8* %regX)	The pointer passed to the function must be i8*.
+
+2. Where to Keep the Original Type (Non-String Pointers)
+
+You must not change pointers to structures, custom types, or pointers that are already correctly typed, as this will introduce new compilation errors.
+LLVM Context	Example (from small_ex.ll)	Rationale
+Struct Pointers	@stdin = external global %struct._IO_FILE*, align 8	Pointers to structs like stdin must retain their complex type (%struct._IO_FILE*).
+Pointers to Pointers	define dso_local i8* @read_line() includes i8** noundef %1	The getline function takes a pointer to a char* variable, so the type is i8**.
+Generic Allocation	declare noalias i8* @malloc(i64 noundef)	While malloc often returns ptr, your corrected preamble uses i8*, which is fine, but it is not a string-specific pointer; it's a generic memory block pointer.
+
+In short, if the pointer represents a stream of bytes intended to be treated as text, it should be i8*. If it represents a complex memory structure, it must keep its structured type.
+
+hey, hello wrld works now!
+
+That's fantastic news! 🎉 Getting that first program to compile and run is a major milestone in compiler development. It means you successfully navigated the complex issue of opaque vs. typed pointers in LLVM.
+
+You've fixed the crucial pieces:
+
+    The preamble.ll is generating with typed pointers (i8*).
+
+    Your PrintString.compile method is correctly generating the i8* type for the @puts call.
+
+    Your StringLit.compile method is correctly generating the explicit GEP instruction to convert the global array type to an i8* pointer.
+
+Now that the basic literal and print statements work, you can proceed with confidence to implement the rest of the language features!
+
+⏭️ Next Steps
+
+Your next focus should be on implementing the remaining variable and control flow statements, which currently contain the UnsupportedOperationException placeholders:
+
+    Variable Assignment: Ensure your implementations of AssignString.compile and AssignBool.compile (in Stmt.java) are fully correct, including the store i8* and store i1 instructions.
+
+    Control Flow: Implement IfElse.compile and While.compile (in Stmt.java), which require generating and managing LLVM labels for branching (br).
+
+Would you like to start by reviewing the implementations for the IfElse and While loops, as they involve complex control flow logic?
+
+lli var_ass_ex.ll 
+
+var_ass_ex.ll:227:16: warning: ptr type is only supported in -opaque-pointers mode
+
+  %reg3 = call ptr @concat_strings(ptr %reg1, ptr %reg2)
+
+               ^
+
+lli: lli: var_ass_ex.ll:227:16: error: expected type
+
+  %reg3 = call ptr @concat_strings(ptr %reg1, ptr %reg2)
+
+               ^
+
+    Query successful
+
+You're encountering this error because, while you fixed PrintString and StringLit, the Concat.compile method in Expr.java is still hardcoded to use the outdated ptr type for function calls and return values.
+
+The function @concat_strings is defined in your preamble to use the typed pointer i8*, so your compiler output must match that.
+
+🛠️ The Fix in Expr.java (Concat.compile)
+
+In your Expr.java file, update the compile method for the Concat record to replace all instances of ptr with i8*:
+Java
+
+// Inside record Concat(Expr<String> lhs, Expr<String> rhs) in Expr.java
+@Override
+public String compile(Compiler comp) {
+    String lreg = lhs.compile(comp);
+    String rreg = rhs.compile(comp);
+    String res = comp.nextRegister();
+    
+    // FIX: Change 'ptr' to 'i8*' for the return type and both arguments.
+    comp.dest().format("  %s = call i8* @concat_strings(i8* %s, i8* %s)\n", res, lreg, rreg);
+    
+    return res;
+}
+
+After making this change, recompile your Java code and run your compiler on var_ass_ex.txt again. This should resolve the error for string concatenation. You should verify all other string-related expressions (Reverse, Input, StrLess, Contains, StrVar) have also been updated to use i8*.
+
+it works!
+
+That's excellent news! 🎉 I'm glad to hear the string concatenation feature is working now. It sounds like you've successfully updated all the necessary string-related LLVM IR generation to use i8*.
+
+Since all the simple expression and assignment logic for variables should be fixed now, the next major step is implementing the control flow statements.
+
+You still have placeholders for:
+
+    IfElse.compile(Compiler comp)
+
+    While.compile(Compiler comp)
+
+These are the most complex methods left in Stmt.java, as they require careful management of LLVM labels and branching instructions.
+
+Would you like to move on to implementing the IfElse statement first?
+
+is there anywehre else that i need to replace ptr with i8*
+
+That's great! Since the hello wrld example and the concatenation now work, you've fixed the most common places for string literals and operation calls.
+
+However, based on the full scope of string-related expressions and variable handling, you likely have four more methods that need the ptr type replacement to be fully compatible with the i8* standard established in your preamble.
+
+Here are the remaining places to change ptr to i8* for string values in Expr.java and Stmt.java:
+
+1. Expressions (Expr.java)
+
+These methods perform operations on strings or read string values.
+
+A. Reverse.compile
+
+Change the function arguments and return type for the @reverse_string call.
+Java
+
+// Inside record Reverse(Expr<String> child)
+@Override
+public String compile(Compiler comp) {
+    String chreg = child.compile(comp);
+    String res = comp.nextRegister();
+    // CHANGE: ptr -> i8* (both places)
+    comp.dest().format("  %s = call i8* @reverse_string(i8* %s)\n", res, chreg);
+    return res;
+}
+
+B. Input.compile
+
+Change the return type for the @read_line call.
+Java
+
+// Inside record Input()
+@Override
+public String compile(Compiler comp) {
+    String res = comp.nextRegister();
+    // CHANGE: ptr -> i8*
+    comp.dest().format("  %s = call i8* @read_line()\n", res);
+    return res;
+}
+
+C. StrLess.compile (String Comparison)
+
+Change the arguments for the @string_less call.
+Java
+
+// Inside record StrLess(Expr<String> lhs, Expr<String> rhs)
+@Override
+public String compile(Compiler comp) {
+    String lreg = lhs.compile(comp);
+    String rreg = rhs.compile(comp);
+    String res = comp.nextRegister();
+    // CHANGE: ptr -> i8* (both arguments)
+    comp.dest().format("  %s = call i1 @string_less(i8* %s, i8* %s)\n", res, lreg, rreg);
+    return res;
+}
+
+D. Contains.compile
+
+Change the arguments for the @string_contains call.
+Java
+
+// Inside record Contains(Expr<String> lhs, Expr<String> rhs)
+@Override
+public String compile(Compiler comp) {
+    String lreg = lhs.compile(comp);
+    String rreg = rhs.compile(comp);
+    String res = comp.nextRegister();
+    // CHANGE: ptr -> i8* (both arguments)
+    comp.dest().format("  %s = call i1 @string_contains(i8* %s, i8* %s)\n", res, rreg, lreg);
+    return res;
+}
+
+2. Variable Access and Assignment
+
+These fixes ensure that string values are loaded from and stored into memory using the correct type.
+
+A. StrVar.compile (Loading a variable)
+
+The value being loaded is a string (i8*).
+Java
+
+// Inside record StrVar(String name) in Expr.java
+@Override
+public String compile(Compiler comp) {
+    String addrReg = comp.getStringVarAddress(name);
+    String res = comp.nextRegister();
+    // FIX: Change 'load ptr' to 'load i8*'
+    comp.dest().format("  %s = load i8*, ptr %s\n", res, addrReg);
+    return res;
+}
+
+B. AssignString.compile (Storing a value)
+
+The value being stored is a string (i8*).
+Java
+
+// Inside record AssignString(String name, Expr<String> child) in Stmt.java
+@Override
+public void compile(Compiler comp) {
+    String rvalReg = child.compile(comp);
+    String addrReg = comp.getStringVarAddress(name);
+    // FIX: Change 'store ptr' to 'store i8*'
+    comp.dest().format("  store i8* %s, ptr %s\n", rvalReg, addrReg);
+}
+
+Implementing these changes should complete the transition to typed pointers for all string functionality.
+
+give me a simple program to test these things
+
+That's a smart idea! A comprehensive test program will verify all the compilation features you just implemented.
+
+Since you've fixed string literals, concatenation, variable access, and assignment, this program will test those features together.
+
+Here is a simple program written in your custom language syntax (assuming the chat keyword is for printing and assignment uses the = operator, which is typical for these kinds of languages):
+
+💻 Test Program: var_flow_test.txt
+
+This program declares and assigns string and boolean variables, uses a string expression (concatenation), and prints the results.
+Java
+
+// 1. Declare and initialize variables
+s_var = [Hello, ]
+b_var = [True]
+
+// 2. Perform concatenation and re-assignment
+s_var = s_var + [World] + [!]
+b_var = s_var < [Zebra]  // Should be True
+
+// 3. Print final results
+chat s_var
+chat b_var
+
+// 4. Test Reverse and Input (requires user input)
+s_rev = reverse(s_var)
+chat s_rev
+chat [Enter test input:]
+s_input = input()
+chat [You entered: ] + s_input
+
+// 5. Test another boolean operation
+b_final = s_rev contains [olleH]
+chat b_final
+
+🧪 Expected Output
+
+When you run your compiler on this file and then execute the resulting LLVM IR (lli var_flow_test.ll), and assuming the user inputs test:
+
+Hello, World!
+True
+!dlroW ,olleH
+Enter test input:
+test
+You entered: test
+True
+
+This program tests:
+
+    String Literals ([Hello, ], [World], etc.)
+
+    Variable Assignment (s_var = ..., b_var = ...)
+
+    Variable Access (s_var in concatenation and comparison)
+
+    Concatenation (s_var + [World] + [!])
+
+    String Less Than (<)
+
+    Reverse (reverse(s_var))
+
+    Input (input())
+
+    String Contains (s_rev contains [olleH])
+
+    Printing (chat)
+
+Would you like to move on to implementing the IfElse control flow logic in Stmt.java?
+
+./run.sh var_ass_ex.txt var_ass_ex.ll
+
+ERROR: compiler error: undefined string variable address sss
+
+Aborting the interpreter from input: sss ! [olleh]
+
+chat [one] + [two] + [three]
+
+The error message: ERROR: compiler error: undefined string variable address sss means that when your compiler encountered the string variable sss in the code, it tried to look up its memory address in the internal map (the one we added to Compiler.java), but the variable had not been allocated or recorded yet.
+
+This is happening because your input file likely includes a line that tries to access sss before it has been defined or assigned for the first time.
+
+🐛 The Cause
+
+The issue is likely from one of your other test files or part of the compilation process not shown, as the example var_ass_ex.txt only contains chat [one] + [two] + [three]. However, the core compiler failure is that the variable address tracking logic is missing the part where variables are initially recorded and allocated memory.
+
+Since your language doesn't seem to have an explicit "Declare" statement, the first assignment to a variable must handle both allocation (using alloca in LLVM IR) and storage (using store).
+
+You need to update AssignString.compile in Stmt.java to check if the variable exists and allocate it if it doesn't.
+
+🛠️ Required Changes to Compiler.java
+
+First, you need a safe way for AssignString.compile to check if a variable exists and either retrieve its address or allocate a new one.
+
+You need to implement the allocation logic in Compiler.java. This method will be used only once per variable, when it's first encountered.
+Java
+
+// Conceptual additions to Compiler.java
+// (Assumes you have the maps: private Map<String, String> stringVarAddresses)
+
+/** Allocates memory for a new string variable and records its address. */
+public String allocateStringVar(String name) {
+    if (stringVarAddresses.containsKey(name)) {
+        // Should not happen for a true declaration, but useful check.
+        return stringVarAddresses.get(name);
+    }
+
+    // 1. Get a register for the memory address (e.g., %addr1)
+    String addrReg = nextRegister();
+    
+    // 2. Generate LLVM IR to allocate space for a string pointer (i8*)
+    // We allocate space for one i8* pointer, and the address of that space is stored in addrReg.
+    dest().format("  %s = alloca i8*, align 8\n", addrReg);
+
+    // 3. Record the address register for future lookups
+    stringVarAddresses.put(name, addrReg);
+
+    return addrReg;
+}
+
+2. 📝 Fix in Stmt.java (AssignString.compile)
+
+Now, modify the AssignString.compile method to use this new allocation logic. It needs to check if the variable is known; if not, it calls the allocator.
+Java
+
+// Inside record AssignString(String name, Expr<String> child) in Stmt.java
+@Override
+public void compile(Compiler comp) {
+    // 1. Compile the right-hand side expression to get the string value (i8* register).
+    String rvalReg = child.compile(comp);
+
+    String addrReg;
+    
+    // Check if the variable is already allocated.
+    if (comp.getStringVarAddress(name) == null) {
+        // If not allocated, allocate memory and record the address.
+        addrReg = comp.allocateStringVar(name);
+    } else {
+        // If already allocated (re-assignment), just get the existing address.
+        addrReg = comp.getStringVarAddress(name);
+    }
+    
+    // 2. Store the value into the variable's memory address.
+    // The value is an i8* (string pointer), and the address is a ptr (memory location pointer).
+    comp.dest().format("  store i8* %s, ptr %s\n", rvalReg, addrReg);
+}
+
+Note: You will need to implement a similar allocateBoolVar method and update AssignBool.compile as well to ensure boolean variable declaration also works!
+
+give it to me
+
+I understand you want the code additions to fix the "undefined string variable address" error. This requires adding methods to allocate memory for variables in Compiler.java and then using those methods in the assignment statements in Stmt.java.
+
+Here are the necessary code blocks to implement variable allocation.
+
+1. ⚙️ Fixes in Compiler.java
+
+You need to add methods to allocate space for both string (i8*) and boolean (i1) variables and track their addresses.
+
+Required Allocation Methods
+
+Add the following methods to your Compiler.java class:
+Java
+
+// Conceptual Addition to Compiler.java
+/** Allocates memory for a new string variable and records its address. */
+public String allocateStringVar(String name) {
+    // 1. Get a register for the memory address (e.g., %addr1)
+    String addrReg = nextRegister();
+    
+    // 2. Generate LLVM IR to allocate space for an i8* pointer (string value)
+    dest().format("  %s = alloca i8*, align 8\n", addrReg);
+
+    // 3. Record the address register for future lookups
+    stringVarAddresses.put(name, addrReg);
+
+    return addrReg;
+}
+
+/** Allocates memory for a new boolean variable and records its address. */
+public String allocateBoolVar(String name) {
+    String addrReg = nextRegister();
+    
+    // Allocate space for an i1 (boolean value)
+    dest().format("  %s = alloca i1, align 1\n", addrReg);
+
+    boolVarAddresses.put(name, addrReg);
+
+    return addrReg;
+}
+
+2. 📝 Fixes in Stmt.java
+
+You must now update the assignment statements to use these allocation methods when a variable is assigned for the first time. We'll rely on checking the stringVarAddresses map to determine if a variable is new or being reassigned.
+
+A. AssignString.compile
+
+Java
+
+// Inside record AssignString(String name, Expr<String> child)
+@Override
+public void compile(Compiler comp) {
+    // 1. Compile the right-hand side expression to get the string value (i8* register).
+    String rvalReg = child.compile(comp);
+
+    String addrReg;
+    
+    // We assume a 'getStringVarAddress' method exists but returns null if the variable is new.
+    // If the variable address is not yet tracked, allocate it first.
+    if (!comp.stringVarAddresses.containsKey(name)) { // Access the map directly for the check
+        addrReg = comp.allocateStringVar(name);
+    } else {
+        addrReg = comp.getStringVarAddress(name);
+    }
+    
+    // 2. Store the i8* value into the ptr memory address.
+    comp.dest().format("  store i8* %s, ptr %s\n", rvalReg, addrReg);
+}
+
+B. AssignBool.compile
+
+Java
+
+// Inside record AssignBool(String name, Expr<Boolean> child)
+@Override
+public void compile(Compiler comp) {
+    // 1. Compile the right-hand side expression to get the boolean value (i1 register).
+    String rvalReg = child.compile(comp);
+    
+    String addrReg;
+
+    if (!comp.boolVarAddresses.containsKey(name)) { // Access the map directly for the check
+        // Allocate space for the new boolean variable.
+        addrReg = comp.allocateBoolVar(name);
+    } else {
+        addrReg = comp.getBoolVarAddress(name);
+    }
+    
+    // 2. Store the i1 value into the ptr memory address.
+    comp.dest().format("  store i1 %s, ptr %s\n", rvalReg, addrReg);
+}
+
+This completes the implementation for variable assignment, resolving the "undefined string variable address" error by ensuring every variable is allocated memory when first used.
+
+The field Compiler.stringVarAddresses is not visibleJava(33554503)
+
+stringVarAddresses has private access in Compiler(errors(1): 64:23-64:41)
+
+You're running into a visibility problem because your code in Stmt.java (specifically inside AssignString.compile and AssignBool.compile) is trying to access the variable maps directly, but those maps are declared as private in Compiler.java.
+
+The error messages:
+
+    The field Compiler.stringVarAddresses is not visible
+
+    stringVarAddresses has private access in Compiler
+
+Confirm that you're trying to access a private field from outside its class.
+
+Here are the two ways to fix this, with the second option being the cleaner, standard programming practice.
+
+1. ⚙️ Quick Fix: Change Visibility in Compiler.java
+
+You can change the access modifier for the variable maps in your Compiler.java file from private to public (or protected, or omit the modifier for default package access, but public is the quickest way to solve the visibility issue).
+
+In Compiler.java:
+Java
+
+// Change:
+// private Map<String, String> stringVarAddresses = new HashMap<>();
+// private Map<String, String> boolVarAddresses = new HashMap<>();
+
+// To:
+public java.util.Map<String, String> stringVarAddresses = new java.util.HashMap<>();
+public java.util.Map<String, String> boolVarAddresses = new java.util.HashMap<>();
+
+2. ✅ Best Practice Fix: Use Public Getter Methods
+
+The best approach is to keep the fields private in Compiler.java (to encapsulate the internal state) and expose them through public getter methods.
+
+A. Add Getter Methods to Compiler.java
+
+Keep the fields private and add two new getter methods to Compiler.java:
+Java
+
+// Inside public class Compiler { ...
+    // ... existing fields ...
+    private java.util.Map<String, String> stringVarAddresses = new java.util.HashMap<>();
+    private java.util.Map<String, String> boolVarAddresses = new java.util.HashMap<>();
+
+    // --- NEW GETTER METHODS ---
+
+    /** Returns the map of string variable addresses (for existence checks). */
+    public java.util.Map<String, String> getStringVarAddresses() {
+        return stringVarAddresses;
+    }
+
+    /** Returns the map of boolean variable addresses (for existence checks). */
+    public java.util.Map<String, String> getBoolVarAddresses() {
+        return boolVarAddresses;
+    }
+    // ...
+}
+
+B. Update Stmt.java to Use Getters
+
+Modify your recently implemented AssignString.compile and AssignBool.compile methods in Stmt.java to call the new getters instead of accessing the field directly:
+Java
+
+// Inside record AssignString(String name, Expr<String> child)
+@Override
+public void compile(Compiler comp) {
+    String rvalReg = child.compile(comp);
+    String addrReg;
+    
+    // FIX: Use the getter method to check if the map contains the key.
+    if (!comp.getStringVarAddresses().containsKey(name)) {
+        addrReg = comp.allocateStringVar(name);
+    } else {
+        addrReg = comp.getStringVarAddress(name);
+    }
+    
+    comp.dest().format("  store i8* %s, ptr %s\n", rvalReg, addrReg);
+}
+
+// Inside record AssignBool(String name, Expr<Boolean> child)
+@Override
+public void compile(Compiler comp) {
+    String rvalReg = child.compile(comp);
+    String addrReg;
+
+    // FIX: Use the getter method to check if the map contains the key.
+    if (!comp.getBoolVarAddresses().containsKey(name)) {
+        addrReg = comp.allocateBoolVar(name);
+    } else {
+        addrReg = comp.getBoolVarAddress(name);
+    }
+    
+    comp.dest().format("  store i1 %s, ptr %s\n", rvalReg, addrReg);
+}
+
+lli var_ass_ex.ll 
+
+var_ass_ex.ll:227:20: warning: ptr type is only supported in -opaque-pointers mode
+
+  store i8* %reg1, ptr %reg2
+
+                   ^
+
+lli: lli: var_ass_ex.ll:227:20: error: expected type
+
+  store i8* %reg1, ptr %reg2
+
+This error means that the address pointer type in your store instruction is still the generic ptr, but the LLVM environment is expecting a typed pointer for memory addresses as well.
+
+The instruction that is failing is: store i8* %reg1, ptr %reg2
+
+Here, %reg1 is the value being stored (i8*, a string pointer). The error is pointing to %reg2, which is the memory address where the string value is being saved.
+
+Since you are storing an i8* value, the memory address must be a pointer to an i8*, which is written as **i8** (pointer to a pointer to an 8-bit integer).
+
+🛠️ The Fix: Updating Address Pointers
+
+You need to change the type of the address pointer in all your store instructions for string variables.
+
+1. Fix in Stmt.java (AssignString.compile)
+
+Update the store instruction to use i8** for the destination pointer type.
+Java
+
+// Inside record AssignString(String name, Expr<String> child)
+@Override
+public void compile(Compiler comp) {
+    String rvalReg = child.compile(comp);
+    String addrReg;
+    
+    // ... allocation check logic ...
+
+    // FIX: Change 'ptr' to 'i8*' for the address type (%reg2 type). 
+    // The instruction must specify the pointer-to-i8* type (i8**).
+    comp.dest().format("  store i8* %s, i8** %s\n", rvalReg, addrReg);
+}
+
+2. Fix in Expr.java (StrVar.compile)
+
+You must also update the corresponding load instruction in StrVar.compile to use i8** for the address pointer type.
+Java
+
+// Inside record StrVar(String name)
+@Override
+public String compile(Compiler comp) {
+    String addrReg = comp.getStringVarAddress(name);
+    String res = comp.nextRegister();
+    
+    // FIX: Change 'ptr' to 'i8**' for the address type (%reg2 type).
+    comp.dest().format("  %s = load i8*, i8** %s\n", res, addrReg);
+    return res;
+}
+
+3. Fix in Compiler.java (Allocation)
+
+Finally, update your allocateStringVar in Compiler.java to ensure it's generating the correct type in the alloca instruction:
+Java
+
+// Conceptual change in Compiler.java
+public String allocateStringVar(String name) {
+    String addrReg = nextRegister();
+    
+    // FIX: Change 'alloca i8*, align 8' to 'alloca i8*, align 8' 
+    // Wait, the address register itself is a generic pointer. The instruction is fine.
+    // The error is actually in the load/store instructions themselves.
+
+    // *Self-Correction on Allocation:*
+    // The previous allocation was: dest().format("  %s = alloca i8*, align 8\n", addrReg);
+    // This instruction is actually correct in modern LLVM where the type is for the *value* stored.
+    // However, if the environment is super strict, the address register (%addrReg) should be declared as i8** type, 
+    // but the simplest fix is just changing the load/store instructions as shown above.
+    
+    // To be most compatible: ensure your allocation instruction also matches the type.
+    // For simplicity, stick to the load/store fix, but if that fails, you need to revisit the 'alloca' instruction.
+    // The simplest and most likely required fix is changing the type on the load/store instructions.
+    
+    return addrReg; // No change needed here if you were using 'i8*' previously.
+}
+
+Conclusion: The error lies in the store and load instructions' address type. Change the second type argument (ptr) to **i8** in both AssignString.compile and StrVar.compile.
+
+isthe stringvaraddresses.put line useless in here; public String allocateStringVar(String name) {
+
+// 1. Get a register for the memory address (e.g., %addr1)
+
+String addrReg = nextRegister();
+
+// 2. Generate LLVM IR to allocate space for an i8* pointer (string value)
+
+dest().format(" %s = alloca i8*, align 8\n", addrReg);
+
+
+// 3. Record the address register for future lookups
+
+stringVarAddresses.put(name, addrReg);
+
+
+return addrReg;
+
+No, the stringVarAddresses.put(name, addrReg); line is not useless; it is absolutely essential for your compiler to work correctly.
+
+Here's why you need that line:
+
+🔑 Why the .put() Line is Essential
+
+The allocateStringVar method's entire purpose is to set up a new string variable. This involves two steps, both of which are critical:
+
+    Generate LLVM IR (alloca): This instruction physically reserves space in the memory of the LLVM function for the variable.
+
+    Record the Address (put()): This is the bookkeeping step. The stringVarAddresses map acts as the compiler's symbol table for variable locations.
+
+Symbol Table Functionality
+
+Line of Code	Function in Compiler	Why it's Needed
+dest().format(" %s = alloca i8*, ...", addrReg);	Allocation (Code Generation)	Reserves memory space for the variable.
+stringVarAddresses.put(name, addrReg);	Bookkeeping (State Management)	Records the connection: "The variable named 'name' lives at the LLVM address 'addrReg'."
+
+If you remove the .put() line, the alloca instruction will run, but the compiler will immediately forget where it stored the variable. Any subsequent attempt to load the variable (in StrVar.compile) or store a new value to it (in AssignString.compile) will fail because comp.getStringVarAddress(name) will return null (or throw an error), as the address was never recorded.
+
+In summary: The line ensures that when a variable is assigned a new value or accessed later in the program, the compiler knows exactly which LLVM register holds the memory address for that variable.
+
+hey, it works now!
+
+That is absolutely fantastic! 🎉 I'm thrilled to hear that the variable assignment and access logic is now working correctly. Dealing with LLVM's strict pointer typing (ptr vs. i8**) is often the trickiest part of getting a compiler up and running.
+
+You've successfully implemented:
+
+    String Literals and Operations (Concatenation, Reverse, Comparison, Input).
+
+    Variable Assignment (Allocation and Storage).
+
+    Variable Access (Loading).
+
+⏭️ Ready for Control Flow
+
+The next major features to implement are the control flow statements in Stmt.java, which still throw UnsupportedOperationException exceptions.
+
+These are:
+
+    IfElse.compile(Compiler comp)
+
+    While.compile(Compiler comp)
+
+Implementing these involves generating new LLVM basic blocks (labels) and using branching instructions (br).
+
+Would you like to start with the IfElse statement?
+
+let us commence
+
+Excellent! Let's commence by tackling the control flow statements in Stmt.java, starting with the IfElse statement.
+
+Implementing IfElse.compile requires generating LLVM Intermediate Representation (IR) that uses basic blocks (labels) and conditional branching to skip or execute code based on a boolean condition.
+
+1. ⚙️ Prerequisite: Compiler.java Label Counter
+
+First, make sure your Compiler.java has the mechanism to generate unique labels. If you haven't already, add the following field and method to Compiler.java:
+Java
+
+// Inside public class Compiler { ...
+    // ... existing fields ...
+    private int nextLabelNum = 1;
+
+    /** Creates a new label number and returns it. */
+    public int nextLabelNum() {
+        return nextLabelNum++;
+    }
+// ...
+}
+
+2. 📝 Fix in Stmt.java (IfElse.compile)
+
+Now, replace the UnsupportedOperationException in the IfElse record with the following LLVM IR generation logic.
+
+The logic follows this pattern: Check → Branch → Body → Merge.
+Java
+
+// Inside record IfElse(Expr<Boolean> condition, Stmt ifBody, Stmt elseBody)
+@Override
+public void compile(Compiler comp) {
+    // Get a unique label number for this if-else block
+    int labelNum = comp.nextLabelNum();
+    String ifTrueLabel = String.format("if_true_L%d", labelNum);
+    String ifFalseLabel = String.format("if_false_L%d", labelNum);
+    String ifEndLabel = String.format("if_end_L%d", labelNum);
+
+    // 1. Compile the condition (results in an i1 register)
+    String condReg = condition.compile(comp);
+
+    // 2. Generate Conditional Branch (br i1)
+    // Branch to 'if_true' if cond is true, otherwise branch to 'if_false'
+    comp.dest().format("  br i1 %s, label %%%s, label %%%s\n", condReg, ifTrueLabel, ifFalseLabel);
+
+    // --- IF TRUE BLOCK ---
+    // 3. Emit the 'if-true' label
+    comp.dest().format("%s:\n", ifTrueLabel);
+    // Compile the 'if' body
+    ifBody.compile(comp);
+    
+    // Unconditional branch to the 'if_end' label to skip the 'else' block
+    comp.dest().format("  br label %%%s\n", ifEndLabel);
+
+    // --- IF FALSE (ELSE) BLOCK ---
+    // 4. Emit the 'if-false' label
+    comp.dest().format("%s:\n", ifFalseLabel);
+    // Compile the 'else' body
+    elseBody.compile(comp);
+
+    // Unconditional branch to the 'if_end' label
+    comp.dest().format("  br label %%%s\n", ifEndLabel);
+
+    // --- MERGE POINT ---
+    // 5. Emit the 'if-end' label (the merge point after the conditional logic)
+    comp.dest().format("%s:\n", ifEndLabel);
+}
+
+The next logical step is to implement the While statement, which uses a similar but slightly more structured pattern of labels. Would you like to proceed with the While.compile method?
+
+is nextlabelsum different from nextregsum
+
+Yes, they are fundamentally different! They track two distinct types of unique identifiers needed when generating LLVM Intermediate Representation (IR) code.
+
+They are:
+Identifier	Purpose	LLVM IR Role
+nextRegNum	Tracks the next available virtual register number.	Used for data flow. Creates unique registers (e.g., %reg1, %reg2, %reg3) to store the results of expressions and operations.
+nextLabelNum	Tracks the next available basic block (label) number.	Used for control flow. Creates unique labels (e.g., %if_true_L1, %loop_start_L2) to mark destinations for branching instructions (br).
+
+In summary:
+
+    Registers (from nextRegNum) are where your compiler stores values.
+
+    Labels (from nextLabelNum) are where your compiler directs execution flow.
+
+You needed nextLabelNum specifically to implement the jumping and merging logic for the IfElse and While statements.
+
+lli var_ass_ex.ll 
+
+var_ass_ex.ll:230:19: warning: ptr type is only supported in -opaque-pointers mode
+
+  store i1 %reg3, ptr %reg4
+
+                  ^
+
+lli: lli: var_ass_ex.ll:230:19: error: expected type
+
+  store i1 %reg3, ptr %reg4
+
+    Query successful
+
+You've run into the same type of error, but this time for a Boolean variable!
+
+The error: store i1 %reg3, ptr %reg4 error: expected type
+
+This means that when storing the boolean value (i1) into memory, the address pointer type (ptr %reg4) is incorrect. Since you are storing an i1 value, the address must be a pointer to an i1, which is written as i1* (pointer to a 1-bit integer).
+
+This problem exists in two places in your code: the boolean variable allocation (alloca) and the assignment/store (AssignBool.compile).
+
+🛠️ The Fixes for Boolean Pointers
+
+You need to update your code to use the typed pointer i1* for the memory location of boolean variables.
+
+1. Fix in Stmt.java (AssignBool.compile)
+
+Update the store instruction to use i1* for the destination pointer type.
+Java
+
+// Inside record AssignBool(String name, Expr<Boolean> child)
+@Override
+public void compile(Compiler comp) {
+    String rvalReg = child.compile(comp);
+    String addrReg;
+
+    if (!comp.getBoolVarAddresses().containsKey(name)) {
+        addrReg = comp.allocateBoolVar(name);
+    } else {
+        addrReg = comp.getBoolVarAddress(name);
+    }
+    
+    // FIX 1: Change 'ptr' to 'i1*' for the address type (%reg4 type)
+    comp.dest().format("  store i1 %s, i1* %s\n", rvalReg, addrReg);
+}
+
+2. Fix in Expr.java (BoolVar.compile)
+
+Update the corresponding load instruction in BoolVar.compile to use i1* for the address pointer type.
+Java
+
+// Inside record BoolVar(String name)
+@Override
+public Boolean compile(Compiler comp) {
+    String addrReg = comp.getBoolVarAddress(name);
+    String res = comp.nextRegister();
+    
+    // FIX 2: Change 'ptr' to 'i1*' for the address type
+    comp.dest().format("  %s = load i1, i1* %s\n", res, addrReg);
+    return res;
+}
+
+3. Fix in Compiler.java (allocateBoolVar)
+
+Update the alloca instruction in allocateBoolVar to specify the size and alignment of an i1 pointer. While the instruction is likely correct for the target type, making it consistent is best practice (you can check if the second ptr needs to change, but based on the error, changing the load/store instructions to use i1* is the primary fix).
+Java
+
+// Conceptual change in Compiler.java
+public String allocateBoolVar(String name) {
+    String addrReg = nextRegister();
+    
+    // Allocate space for an i1 (boolean value)
+    // FIX 3 (for consistency): Use i1* instead of ptr if the simple fix fails.
+    // However, the load/store fix should handle it, as the address is a ptr to i1.
+    // The instruction: dest().format("  %s = alloca i1, align 1\n", addrReg); is already correct 
+    // for allocating space for an i1 value.
+    
+    // No change is strictly necessary here, but the load/store fix is mandatory.
+    boolVarAddresses.put(name, addrReg);
+
+    return addrReg;
+}
+
+Apply fixes 1 and 2, recompile your Java code, and run your compiler again. This should fix all remaining type errors for variable assignment.
+
+if works!
+
+That is fantastic news! 🎉 Getting the IfElse statement to compile and execute correctly means you've successfully implemented your first major piece of control flow logic using LLVM basic blocks and branching.
+
+Now that conditional execution is solid, the final challenge for control flow is the While loop.
+
+The While.compile method in Stmt.java is still using the placeholder:
+Java
+
+record While(Expr<Boolean> condition, Stmt body) implements Stmt {
+    // ... exec method ...
+    @Override
+    public String compile(Compiler comp) {
+        throw new UnsupportedOperationException("delete this exception and implement this method!"); // TODO
+    }
+}
+
+The While loop uses a similar branching structure to IfElse, but it requires a back-edge branch to loop execution.
+
+💻 Implementing While.compile
+
+A While loop requires three distinct labels (basic blocks) in LLVM IR:
+
+    loop_header: Checks the condition.
+
+    loop_body: Executes the statements inside the loop.
+
+    loop_end: The exit point of the loop.
+
+Here is the implementation for the While record in Stmt.java:
+Java
+
+// Inside record While(Expr<Boolean> condition, Stmt body)
+@Override
+public void compile(Compiler comp) {
+    // 1. Get unique labels
+    int labelNum = comp.nextLabelNum();
+    String loopHeaderLabel = String.format("loop_header_L%d", labelNum);
+    String loopBodyLabel = String.format("loop_body_L%d", labelNum);
+    String loopEndLabel = String.format("loop_end_L%d", labelNum);
+
+    // 2. Initial Unconditional Jump to the header
+    // All flow must enter the loop header to check the condition first.
+    comp.dest().format("  br label %%%s\n", loopHeaderLabel);
+
+    // --- LOOP HEADER BLOCK ---
+    // 3. Emit the header label
+    comp.dest().format("%s:\n", loopHeaderLabel);
+
+    // 4. Compile the condition (results in an i1 register)
+    String condReg = condition.compile(comp);
+
+    // 5. Conditional Branch (br i1)
+    // Branch to 'loop_body' if true, otherwise branch to 'loop_end'
+    comp.dest().format("  br i1 %s, label %%%s, label %%%s\n", condReg, loopBodyLabel, loopEndLabel);
+
+    // --- LOOP BODY BLOCK ---
+    // 6. Emit the body label
+    comp.dest().format("%s:\n", loopBodyLabel);
+
+    // 7. Compile the loop body
+    body.compile(comp);
+
+    // 8. Unconditional Back-Edge Jump
+    // Jump back to the header to re-check the condition
+    comp.dest().format("  br label %%%s\n", loopHeaderLabel);
+
+    // --- LOOP END BLOCK ---
+    // 9. Emit the exit label (the merge point)
+    comp.dest().format("%s:\n", loopEndLabel);
+}
+
+Implementing this should finalize the core statement and expression compilation logic! Once you've added this, you should be able to write and compile programs with looping constructs.
+
+lli while_ex.ll 
+
+while_ex.ll:245:16: warning: ptr type is only supported in -opaque-pointers mode
+
+  %reg8 = call ptr @bool_to_string(i1 %reg7)
+
+               ^
+
+lli: lli: while_ex.ll:245:16: error: expected type
+
+  %reg8 = call ptr @bool_to_string(i1 %reg7)
+
+You've run into another type error, indicating an issue with a function you're using in your boolean-to-string conversion logic, likely within an expression that you use inside your new While loop.
+
+The error: %reg8 = call ptr @bool_to_string(i1 %reg7) error: expected type
+
+This means the function @bool_to_string is being called in your LLVM IR, but it's using the generic ptr type for its return value, which your environment doesn't like.
+
+🛠️ The Fix: Update @bool_to_string to i8*
+
+The function @bool_to_string must return a string pointer, so its return type needs to be changed from ptr to i8*.
+
+Since you haven't shown the code for @bool_to_string, it likely exists in one of two places:
+
+1. If @bool_to_string is an Expression
+
+If you have a custom expression type (like BoolToString) or a similar method that handles boolean to string conversion (e.g., to enable printing a boolean without a dedicated PrintBool statement), you need to change its compile method in Expr.java:
+Java
+
+// Conceptual fix in Expr.java (or similar file)
+@Override
+public String compile(Compiler comp) {
+    // ... compile the boolean child ...
+    String boolReg = child.compile(comp);
+    String res = comp.nextRegister();
+    
+    // FIX: Change 'ptr' to 'i8*' for the return type
+    comp.dest().format("  %s = call i8* @bool_to_string(i1 %s)\n", res, boolReg);
+    
+    return res;
+}
+
+2. If @bool_to_string is in preamble.ll
+
+You must ensure that the function declaration for @bool_to_string in your preamble.ll file is also updated to use i8*:
+Code snippet
+
+; Conceptual declaration in preamble.ll
+; OLD: declare ptr @bool_to_string(i1 noundef)
+; NEW: 
+declare i8* @bool_to_string(i1 noundef)
+
+Action: Apply the fix in your relevant Java file by changing the return type of the function call to i8*. If the error persists, check your preamble.ll to ensure the declaration is also correct.
+
+im not sure where it is. here is the test files.
+
+    Query successful
+
+You've hit the nail on the head! The problem is exactly what we suspected, but now we can see the function call in your generated code and the specific lines it appears on.
+
+The function @bool_to_string is used to convert your boolean variable (isdone in this case) into a printable string (i8*). The error is:
+
+%reg8 = call ptr @bool_to_string(i1 %reg7)
+
+You need to change the return type of the function call from ptr to i8*.
+
+Since you do not have a separate BoolToString expression, your language is likely doing this conversion implicitly when you try to print a boolean with a string, or you are using a function that is not part of the standard Expr types we've been working with.
+
+However, based on the while_ex.ll file, the fix is straightforward:
+
+🛠️ The Fix: Updating the Implicit Boolean-to-String Call
+
+You need to find the part of your Java code that generated the line: reg8 = call ptr @bool_to_string(i1 %reg7).
+
+This conversion is most likely happening in a place where you are mixing a string and a boolean, which usually happens in Concat.compile or in a generic expression wrapper that handles type coercion.
+
+Since the simplest implementation is to provide a dedicated BoolToString method in the compiler, let's assume you'll create one to handle this logic cleanly.
+
+1. Missing Compiler Utility
+
+You need a new compiler utility method to generate this conversion, or ensure the method handling the expression where this occurs is updated.
+
+2. Updating the Call Sites
+
+Since we don't have the exact source for that expression, you need to search your Expr.java or Stmt.java files (likely inside Concat.compile or any method that takes a boolean expression and converts it) for the pattern: call ptr @bool_to_string.
+
+Assuming the conversion is being done to print a boolean (as seen in the LLVM output):
+Java
+
+// Check your code for where a boolean register is passed to @bool_to_string
+// and replace the output line with this:
+
+// OLD (Causes Error): comp.dest().format("  %s = call ptr @bool_to_string(i1 %s)\n", res, boolReg);
+
+// NEW (Corrected):
+comp.dest().format("  %s = call i8* @bool_to_string(i1 %s)\n", res, boolReg);
+
+3. Check the Preamble
+
+Finally, you must check your preamble.ll (or the corresponding C code) to ensure the function is declared correctly.
+
+The function is missing from the provided while_ex.ll preamble, so you need to add this declaration (or ensure it exists) in your preamble.ll:
+Code snippet
+
+declare i8* @bool_to_string(i1 noundef)
+
+Action:
+
+    Find the code that generates the call ptr @bool_to_string instruction and change its generated output to use i8*.
+
+    Ensure the declaration declare i8* @bool_to_string(i1 noundef) is present in your preamble.ll.
+
+found it! it is in stringify.java: // Stringify.java
+
+package si413;
+
+
+/** AST node to convert a Boolean expression (1 or 0) into a String expression ("1" or "0").
+
+* This is used for concatenation (+) and printing (chat).
+
+*/
+
+public record Stringify(Expr<Boolean> child) implements Expr<String> {
+
+@Override
+
+public String eval(Interpreter interp) {
+
+// Interpreter logic remains the same
+
+if (child.eval(interp)) return "1";
+
+else return "0";
+
+}
+
+
+@Override
+
+public String compile(Compiler comp) {
+
+// 1. Compile the child Boolean expression. Result is an i1 register.
+
+String chreg = child.compile(comp);
+
+// 2. Allocate a new register for the resulting String pointer.
+
+String res = comp.nextRegister();
+
+// 3. Call the runtime function to convert the i1 to a String pointer (ptr).
+
+// Assumes a runtime function named @bool_to_string exists.
+
+// It takes the i1 register (chreg) and returns a ptr (String*).
+
+comp.dest().format(" %s = call ptr @bool_to_string(i1 %s)\n", res, chreg);
+
+// 4. Return the register holding the resulting String pointer.
+
+return res;
+
+}
+
+}
+
+That's it! You found the source of the error in Stringify.java.
+
+The issue is exactly what the LLVM error indicated: the compile method for Stringify is hardcoded to generate a return type of ptr for the @bool_to_string function call, but your LLVM environment expects the typed pointer i8* for strings.
+
+🛠️ The Fix in Stringify.java
+
+You need to change the generated instruction in Stringify.compile to use i8*:
+Java
+
+// In Stringify.java
+public record Stringify(Expr<Boolean> child) implements Expr<String> {
+    // ... eval method ...
+
+    @Override
+    public String compile(Compiler comp) {
+        // 1. Compile the child Boolean expression. Result is an i1 register.
+        String chreg = child.compile(comp);
+        
+        // 2. Allocate a new register for the resulting String pointer.
+        String res = comp.nextRegister();
+        
+        // 3. Call the runtime function to convert the i1 to a String pointer.
+        // FIX: Change 'call ptr' to 'call i8*'
+        comp.dest().format("  %s = call i8* @bool_to_string(i1 %s)\n", res, chreg);
+        
+        // 4. Return the register holding the resulting String pointer.
+        return res;
+    }
+}
+
+Final Check: The Preamble
+
+For this fix to work, you must also ensure the function signature in your preamble.ll is correct. Since the previous error already required it, confirm that you have this declaration present in your preamble:
+Code snippet
+
+declare i8* @bool_to_string(i1 noundef)
+
+With the fix in Stringify.java applied, your While loop and any other code that implicitly converts booleans to strings (like in concatenation or print statements) should now compile successfully!
+
+lli while_ex.ll 
+
+lli: lli: while_ex.ll:245:20: error: use of undefined value '@bool_to_string'
+
+  %reg8 = call i8* @bool_to_string(i1 %reg7)
+
+                   ^
+
+
+vm@vm:~/si413/lab3.2$ 
+
+This is a very common error in LLVM compilation! You're now encountering the final piece of the puzzle for that function.
+
+The error: use of undefined value '@bool_to_string'
+
+means that while you successfully fixed your Java code (Stringify.java) to call @bool_to_string with the correct type (i8*), the LLVM interpreter (lli) cannot find a declaration or definition for that function anywhere in the while_ex.ll file.
+
+You must ensure the function is declared in your preamble.ll file (or wherever your external function declarations reside).
+
+🛠️ The Fix: Declare the Function
+
+You need to add the following line to your preamble.ll file (or wherever your declare statements are located) to let the LLVM linker know that the function exists and what its signature is:
+Code snippet
+
+declare i8* @bool_to_string(i1 noundef)
+
+Action:
+
+    Open your preamble.ll file.
+
+    Find the section where other functions like @strlen, @concat_strings, and @puts are declared (declare ...).
+
+    Add the declare i8* @bool_to_string(i1 noundef) line.
+
+Once you add this declaration, the function will no longer be "undefined," and your while_ex.ll should successfully compile and run!
+
+can i add that to preamble.c?
+
+Yes, you absolutely can and should add the implementation for bool_to_string to your preamble.c file.
+
+Since your preamble.ll is compiled from preamble.c, implementing the C function will automatically generate the required LLVM IR definition, including the necessary declare i8* @bool_to_string(i1 noundef) statement in the final preamble.ll output, fixing the current "undefined value" error.
+
+Here is the simple C code you should add to preamble.c:
+C
+
+#include <stdbool.h>
+#include <string.h>
+#include <stdlib.h>
+
+// ... existing functions ...
+
+char* bool_to_string(bool b) {
+  // Allocate space for "True" or "False" plus the null terminator.
+  // "False" has 5 characters + \0 = 6 bytes.
+  
+  if (b) {
+    char* result = malloc(5); // "True" + \0
+    strcpy(result, "True");
+    return result;
+  } else {
+    char* result = malloc(6); // "False" + \0
+    strcpy(result, "False");
+    return result;
+  }
+}
+
+After adding this function to preamble.c, recompile it to generate the updated preamble.ll. This will resolve the use of undefined value '@bool_to_string' error.
+
+where to put in preamble.ll: ; ModuleID = 'preamble.c'
+
+source_filename = "preamble.c"
+
+target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+
+target triple = "x86_64-pc-linux-gnu"
+
+
+%struct._IO_FILE = type { i32, i8*, i8*, i8*, i8*, i8*, i8*, i8*, i8*, i8*, i8*, i8*, %struct._IO_marker*, %struct._IO_FILE*, i32, i32, i64, i16, i8, [1 x i8], i8*, i64, %struct._IO_codecvt*, %struct._IO_wide_data*, %struct._IO_FILE*, i8*, i64, i32, [20 x i8] }
+
+%struct._IO_marker = type opaque
+
+%struct._IO_codecvt = type opaque
+
+%struct._IO_wide_data = type opaque
+
+
+@stdin = external global %struct._IO_FILE*, align 8
+
+@stderr = external global %struct._IO_FILE*, align 8
+
+@.str = private unnamed_addr constant [49 x i8] c"Runtime error: Got EOF when attempting to input\0A\00", align 1
+
+@.str.1 = private unnamed_addr constant [5 x i8] c"True\00", align 1
+
+@.str.2 = private unnamed_addr constant [6 x i8] c"False\00", align 1
+
+
+; Function Attrs: noinline nounwind optnone uwtable
+
+define dso_local i8* @reverse_string(i8* noundef %0) #0 {
+
+  %2 = alloca i8*, align 8
+
+  %3 = alloca i32, align 4
+
+  %4 = alloca i8*, align 8
+
+  %5 = alloca i32, align 4
+
+  store i8* %0, i8** %2, align 8
+
+  %6 = load i8*, i8** %2, align 8
+
+  %7 = call i64 @strlen(i8* noundef %6) #6
+
+  %8 = trunc i64 %7 to i32
+
+  store i32 %8, i32* %3, align 4
+
+  %9 = load i32, i32* %3, align 4
+
+  %10 = add nsw i32 %9, 1
+
+  %11 = sext i32 %10 to i64
+
+  %12 = call noalias i8* @malloc(i64 noundef %11) #7
+
+  store i8* %12, i8** %4, align 8
+
+  store i32 0, i32* %5, align 4
+
+  br label %13
+
+
+13:                                               ; preds = %30, %1
+
+  %14 = load i32, i32* %5, align 4
+
+  %15 = load i32, i32* %3, align 4
+
+  %16 = icmp slt i32 %14, %15
+
+  br i1 %16, label %17, label %33
+
+
+17:                                               ; preds = %13
+
+  %18 = load i8*, i8** %2, align 8
+
+  %19 = load i32, i32* %3, align 4
+
+  %20 = load i32, i32* %5, align 4
+
+  %21 = sub nsw i32 %19, %20
+
+  %22 = sub nsw i32 %21, 1
+
+  %23 = sext i32 %22 to i64
+
+  %24 = getelementptr inbounds i8, i8* %18, i64 %23
+
+  %25 = load i8, i8* %24, align 1
+
+  %26 = load i8*, i8** %4, align 8
+
+  %27 = load i32, i32* %5, align 4
+
+  %28 = sext i32 %27 to i64
+
+  %29 = getelementptr inbounds i8, i8* %26, i64 %28
+
+  store i8 %25, i8* %29, align 1
+
+  br label %30
+
+
+30:                                               ; preds = %17
+
+  %31 = load i32, i32* %5, align 4
+
+  %32 = add nsw i32 %31, 1
+
+  store i32 %32, i32* %5, align 4
+
+  br label %13, !llvm.loop !6
+
+
+33:                                               ; preds = %13
+
+  %34 = load i8*, i8** %4, align 8
+
+  %35 = load i32, i32* %3, align 4
+
+  %36 = sext i32 %35 to i64
+
+  %37 = getelementptr inbounds i8, i8* %34, i64 %36
+
+  store i8 0, i8* %37, align 1
+
+  %38 = load i8*, i8** %4, align 8
+
+  ret i8* %38
+
+}
+
+
+; Function Attrs: nounwind readonly willreturn
+
+declare i64 @strlen(i8* noundef) #1
+
+
+; Function Attrs: nounwind allocsize(0)
+
+declare noalias i8* @malloc(i64 noundef) #2
+
+
+; Function Attrs: noinline nounwind optnone uwtable
+
+define dso_local i8* @concat_strings(i8* noundef %0, i8* noundef %1) #0 {
+
+  %3 = alloca i8*, align 8
+
+  %4 = alloca i8*, align 8
+
+  %5 = alloca i8*, align 8
+
+  store i8* %0, i8** %3, align 8
+
+  store i8* %1, i8** %4, align 8
+
+  %6 = load i8*, i8** %3, align 8
+
+  %7 = call i64 @strlen(i8* noundef %6) #6
+
+  %8 = load i8*, i8** %4, align 8
+
+  %9 = call i64 @strlen(i8* noundef %8) #6
+
+  %10 = add i64 %7, %9
+
+  %11 = add i64 %10, 1
+
+  %12 = call noalias i8* @malloc(i64 noundef %11) #7
+
+  store i8* %12, i8** %5, align 8
+
+  %13 = load i8*, i8** %5, align 8
+
+  %14 = load i8*, i8** %3, align 8
+
+  %15 = call i8* @strcpy(i8* noundef %13, i8* noundef %14) #8
+
+  %16 = load i8*, i8** %5, align 8
+
+  %17 = load i8*, i8** %4, align 8
+
+  %18 = call i8* @strcat(i8* noundef %16, i8* noundef %17) #8
+
+  %19 = load i8*, i8** %5, align 8
+
+  ret i8* %19
+
+}
+
+
+; Function Attrs: nounwind
+
+declare i8* @strcpy(i8* noundef, i8* noundef) #3
+
+
+; Function Attrs: nounwind
+
+declare i8* @strcat(i8* noundef, i8* noundef) #3
+
+
+; Function Attrs: noinline nounwind optnone uwtable
+
+define dso_local i8* @read_line() #0 {
+
+  %1 = alloca i8*, align 8
+
+  %2 = alloca i64, align 8
+
+  %3 = alloca i64, align 8
+
+  store i8* null, i8** %1, align 8
+
+  %4 = load %struct._IO_FILE*, %struct._IO_FILE** @stdin, align 8
+
+  %5 = call i64 @getline(i8** noundef %1, i64* noundef %2, %struct._IO_FILE* noundef %4)
+
+  store i64 %5, i64* %3, align 8
+
+  %6 = load i64, i64* %3, align 8
+
+  %7 = icmp sle i64 %6, 0
+
+  br i1 %7, label %8, label %11
+
+
+8:                                                ; preds = %0
+
+  %9 = load %struct._IO_FILE*, %struct._IO_FILE** @stderr, align 8
+
+  %10 = call i32 (%struct._IO_FILE*, i8*, ...) @fprintf(%struct._IO_FILE* noundef %9, i8* noundef getelementptr inbounds ([49 x i8], [49 x i8]* @.str, i64 0, i64 0))
+
+  call void @exit(i32 noundef 7) #9
+
+  unreachable
+
+
+11:                                               ; preds = %0
+
+  %12 = load i8*, i8** %1, align 8
+
+  %13 = load i64, i64* %3, align 8
+
+  %14 = sub nsw i64 %13, 1
+
+  %15 = getelementptr inbounds i8, i8* %12, i64 %14
+
+  store i8 0, i8* %15, align 1
+
+  %16 = load i8*, i8** %1, align 8
+
+  ret i8* %16
+
+}
+
+
+declare i64 @getline(i8** noundef, i64* noundef, %struct._IO_FILE* noundef) #4
+
+
+declare i32 @fprintf(%struct._IO_FILE* noundef, i8* noundef, ...) #4
+
+
+; Function Attrs: noreturn nounwind
+
+declare void @exit(i32 noundef) #5
+
+
+; Function Attrs: noinline nounwind optnone uwtable
+
+define dso_local void @print_bool(i1 noundef zeroext %0) #0 {
+
+  %2 = alloca i8, align 1
+
+  %3 = zext i1 %0 to i8
+
+  store i8 %3, i8* %2, align 1
+
+  %4 = load i8, i8* %2, align 1
+
+  %5 = trunc i8 %4 to i1
+
+  br i1 %5, label %6, label %8
+
+
+6:                                                ; preds = %1
+
+  %7 = call i32 @puts(i8* noundef getelementptr inbounds ([5 x i8], [5 x i8]* @.str.1, i64 0, i64 0))
+
+  br label %10
+
+
+8:                                                ; preds = %1
+
+  %9 = call i32 @puts(i8* noundef getelementptr inbounds ([6 x i8], [6 x i8]* @.str.2, i64 0, i64 0))
+
+  br label %10
+
+
+10:                                               ; preds = %8, %6
+
+  ret void
+
+}
+
+
+declare i32 @puts(i8* noundef) #4
+
+
+; Function Attrs: noinline nounwind optnone uwtable
+
+define dso_local zeroext i1 @string_less(i8* noundef %0, i8* noundef %1) #0 {
+
+  %3 = alloca i8*, align 8
+
+  %4 = alloca i8*, align 8
+
+  store i8* %0, i8** %3, align 8
+
+  store i8* %1, i8** %4, align 8
+
+  %5 = load i8*, i8** %3, align 8
+
+  %6 = load i8*, i8** %4, align 8
+
+  %7 = call i32 @strcmp(i8* noundef %5, i8* noundef %6) #6
+
+  %8 = icmp slt i32 %7, 0
+
+  ret i1 %8
+
+}
+
+
+; Function Attrs: nounwind readonly willreturn
+
+declare i32 @strcmp(i8* noundef, i8* noundef) #1
+
+
+; Function Attrs: noinline nounwind optnone uwtable
+
+define dso_local zeroext i1 @string_contains(i8* noundef %0, i8* noundef %1) #0 {
+
+  %3 = alloca i8*, align 8
+
+  %4 = alloca i8*, align 8
+
+  store i8* %0, i8** %3, align 8
+
+  store i8* %1, i8** %4, align 8
+
+  %5 = load i8*, i8** %3, align 8
+
+  %6 = load i8*, i8** %4, align 8
+
+  %7 = call i8* @strstr(i8* noundef %5, i8* noundef %6) #6
+
+  %8 = icmp ne i8* %7, null
+
+  ret i1 %8
+
+}
+
+
+; Function Attrs: nounwind readonly willreturn
+
+declare i8* @strstr(i8* noundef, i8* noundef) #1
+
+
+attributes #0 = { noinline nounwind optnone uwtable "frame-pointer"="all" "min-legal-vector-width"="0" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
+
+attributes #1 = { nounwind readonly willreturn "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
+
+attributes #2 = { nounwind allocsize(0) "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
+
+attributes #3 = { nounwind "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
+
+attributes #4 = { "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
+
+attributes #5 = { noreturn nounwind "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
+
+attributes #6 = { nounwind readonly willreturn }
+
+attributes #7 = { nounwind allocsize(0) }
+
+attributes #8 = { nounwind }
+
+attributes #9 = { noreturn nounwind }
+
+
+!llvm.module.flags = !{!0, !1, !2, !3, !4}
+
+!llvm.ident = !{!5}
+
+
+!0 = !{i32 1, !"wchar_size", i32 4}
+
+!1 = !{i32 7, !"PIC Level", i32 2}
+
+!2 = !{i32 7, !"PIE Level", i32 2}
+
+!3 = !{i32 7, !"uwtable", i32 2}
+
+!4 = !{i32 7, !"frame-pointer", i32 2}
+
+!5 = !{!"Ubuntu clang version 15.0.7"}
+
+!6 = distinct !{!6, !7}
+
+!7 = !{!"llvm.loop.mustprogress"}
+
+You are absolutely correct to put the implementation into preamble.c and then recompile it. That's the correct workflow.
+
+However, since you're asking where to place the declaration within the preamble.ll file (which might be necessary if you can't recompile the C source for some reason, or just to understand the LLVM structure), here is the answer:
+
+You should place the missing declaration for @bool_to_string among the other external declarations and function definitions.
+
+In the LLVM IR structure you provided, the best location is after the last function definition and before the attributes section.
+
+Placement in preamble.ll
+
+Place the declaration immediately after the last existing declare statement or the last full function definition.
+
+Suggested Location
+
+Find the last existing declare statement, which in your file is:
+Code snippet
+
+; Function Attrs: nounwind readonly willreturn
+declare i8* @strstr(i8* noundef, i8* noundef) #1
+
+Insert your new declaration right after this line:
+Code snippet
+
+; Function Attrs: nounwind readonly willreturn
+declare i8* @strstr(i8* noundef, i8* noundef) #1
+
+; Add the declaration for your new function here
+declare i8* @bool_to_string(i1 noundef) #4  // Use an appropriate attribute set like #4
+
+attributes #0 = { ... (start of attributes section)
+
+Note on Attributes (#4): I suggested using #4 as an attribute set because it is used by other general I/O functions like @fprintf and @getline in your file. LLVM usually requires function declarations to reference an attribute set, even if it's generic.
+
+The Recommended Fix
+
+Again, the most robust way to fix the use of undefined value '@bool_to_string' error is to implement bool_to_string in preamble.c and recompile preamble.c to preamble.ll. This automatically handles the definition and declaration for you.
+
+lli while_ex.ll 
+
+hello
+
+True
+
+False
+
+hello worldFalse
+
+That's fantastic! Your While loop compiled and ran, and the output sequence shows it's executing the logic inside the loop! 🎉
+
+However, the final line: hello worldFalse looks messy. This is a common issue when your runtime functions (like concat_strings and bool_to_string) don't handle memory management perfectly, or when the final printout combines multiple steps.
+
+Let's trace your expected output based on the logic in while_ex.ll and while_ex.txt.
+
+Tracing the LLVM IR (for Context)
+
+Your while_ex.ll shows the following sequence of execution:
+
+    IfElse Block Execution (Source: [hello] is True):
+
+        It executes the if_true_L1 block.
+
+        It prints hello (from @lit1).
+
+        Output: hello
+
+        The flow jumps to if_end_L1, then branches to loop_header_L2.
+
+    Loop Header Check 1:
+
+        isdone is loaded (%reg6 = load i1, i1* %reg2). Since it was initialized to 1 in while_ex.txt (isdone!1), the condition is True.
+
+        It branches to loop_body_L2.
+
+    Loop Body Execution 1:
+
+        Prints the value of isdone (True) via @bool_to_string.
+
+        Output: True
+
+        isdone is set to 0 (isdone!0 in source, store i1 %reg9, i1* %reg2 in LLVM).
+
+        Prints the new value of isdone (False) via @bool_to_string.
+
+        Output: False
+
+        Concatenation and Print: chat [hello ] + [world] + isdone
+
+            Concatenates "hello " + "world" (registers %reg12 through %reg14).
+
+            Gets the current isdone value (False).
+
+            Concatenates "hello world" + "False" (registers %reg15 through %reg17).
+
+            Output: hello worldFalse (This is where the output is generated).
+
+        It branches back to loop_header_L2.
+
+    Loop Header Check 2:
+
+        isdone is loaded (%reg6 = load i1, i1* %reg2). Since it was set to 0, the condition is False.
+
+        It branches to loop_end_L2.
+
+    Program End.
+
+The Problematic Output
+
+Your output looks like this:
+
+hello
+True
+False
+hello worldFalse 
+
+The output you reported: hello True False hello worldFalse (in a single block, but usually separated by newlines from the puts calls) indicates the program flow is correct! However, the issue is that your program is combining the last two strings.
+
+    chat [hello] (Prints hello and a newline)
+
+    chat isdone (Prints True and a newline)
+
+    chat isdone (Prints False and a newline)
+
+    chat [hello ] + [world] + is isdone (Prints hello worldFalse and a newline)
+
+The likely cause of the combined output is the way your string literal definition (@lit3 in while_ex.ll) is handled in chat:
+
+    If your chat statement only executes a single puts call (which typically adds a newline), the output should be on separate lines.
+
+    Your runtime environment might be buffering output, or the final puts call is not receiving the correct terminating newline character (which should be handled by puts itself).
+
+Crucially, since all the logic (concatenation, variable access, IF, WHILE) is working, the compilation phase is complete! You have now implemented all the missing compilation logic.
+
+Would you like to continue to the next feature (or end here), or do you want to explore the runtime/library issue (like the hello worldFalse output formatting) for the C code in preamble.c?
+
+
+Your USNA chats aren’t used to improve our models. Gemini can make mistakes, so double-check it. Your privacy & Gemini Opens in a new window
+
+
+ Gemini
+Enterprise logo
+Recent
+Compiling Variable Access in LLVM
+how ot do this with lli: clang -S -emit-llvm -Xclang -no-opaque-pointers preamble.c -o preamble.ll
+Pytest CI/CD Configuration and Reports
+Mocking Server Connections for Pytest
+AsKeyR Translation of Python Closure
+ANTLR String Literal Tokenizer Error
+ANTLR Token Rule Refinement
+I am making a new programming language. It will be called AsKeyR, and will use simple ASCII art ( :^), :o--<, etc) as its tokens. it will syntactically resemble R, hence the name. can you help me come up with ideas for the lanugae?
+Fixing Interpreter Without Modifying AST
+C Function to Duplicate Strings
+Testing `if/else` in `txtlng`
+AST Generation and Control Flow Fixes
+C If Statement Parse Rules
+Building a JavaScript API Game Frontend
+Conversation with Gemini
+
+how ot do this with lli: clang -S -emit-llvm -Xclang -no-opaque-pointers preamble.c -o preamble.ll
+
+You can execute this command directly in your shell, assuming you have the Clang compiler installed on your system.
+
+The command: clang -S -emit-llvm -Xclang -no-opaque-pointers preamble.c -o preamble.ll
+
+🛠️ Command Breakdown
+
+This command tells the Clang compiler to translate the C source file, preamble.c, into LLVM Intermediate Representation (IR) assembly code and save it to the file preamble.ll.
+
+Here's what each part does:
+
+    clang: The compiler driver, which is the frontend for LLVM.
+
+    -S: Tells the compiler to stop after generating assembly code and not proceed to the assembler and linker. In the context of -emit-llvm, this means stopping after generating the LLVM IR assembly text file.
+
+    -emit-llvm: Instructs Clang to emit LLVM IR instead of native machine code assembly.
+
+    -Xclang: This is a driver option used to pass an option directly to the Clang frontend (the part that parses C/C++ code and generates IR).
+
+    -no-opaque-pointers: This is the specific option being passed to the frontend. It tells Clang to generate LLVM IR using the older, explicitly typed pointer format instead of the newer, opaque pointer type. This is often necessary for compatibility with older LLVM passes or tools that haven't been updated to handle opaque pointers.
+
+    preamble.c: The input C source file to be compiled.
+
+    -o preamble.ll: Specifies the output filename. The output will be an LLVM IR assembly file named preamble.ll.
+
+🚀 Next Steps with preamble.ll
+
+Once you have the preamble.ll file, you can process it further using other tools in the LLVM toolchain:
+
+    Optimize it: You can use the opt tool to apply various LLVM optimization passes.
+    Bash
+
+opt -O3 preamble.ll -S -o optimized.ll
+
+Compile to native assembly: You can use the llc (LLVM Static Compiler) tool to convert the LLVM IR into assembly code for your target architecture.
+Bash
+
+llc preamble.ll -o preamble.s
+
+Execute via JIT: For simple testing, you might be able to use the LLVM JIT (Just-In-Time) compiler, often exposed via the lli (LLVM Interpreter) tool (though this is more common with LLVM bitcode).
+Bash
+
+    lli preamble.ll
+
+Would you like to try compiling a small example C file, or would you like to know more about the difference between opaque and non-opaque pointers?
+
+is there an alternative to clang that i can use
+
+Yes, there are several widely used alternatives to Clang for compiling C and C++ code. The two main competitors you should be aware of are GCC and MSVC.
+
+The best alternative often depends on your operating system and the project's specific needs (e.g., target platform, performance, or debugging).
+
+💻 Top Alternatives to Clang
+
+1. GNU Compiler Collection (GCC)
+
+    Compiler Name: gcc (for C) and g++ (for C++)
+
+Key Features:
+
+    Open-Source and Free: Like Clang, GCC is free and open-source software, but it uses the GPL license, which differs from Clang's Apache license.
+
+    Maturity and Platform Support: GCC is the oldest and most mature C/C++ compiler and has unparalleled support for a massive number of architectures and operating systems.
+
+    Standard on Linux: It is the standard and often default compiler on most Linux distributions.
+
+When to Use It:
+
+    When developing primarily on Linux or targeting a wide variety of less common platforms/architectures.
+
+    When you need a stable, battle-tested toolchain with the GDB debugger.
+
+2. Microsoft Visual C++ (MSVC)
+
+    Compiler Name: cl
+
+    Key Features:
+
+        Windows Standard: This is the default and official C/C++ compiler for Windows development.
+
+        Integration: It is tightly integrated with the Visual Studio IDE, providing one of the most powerful debugging and development environments available.
+
+        Code Generation: Generates highly optimized code specifically for Windows and x86/x64 architectures.
+
+    When to Use It:
+
+        When developing applications that will run exclusively on Windows.
+
+        When you require seamless integration with the Visual Studio environment and its specialized tools.
+
+⚖️ A Quick Comparison
+
+Feature	Clang/LLVM	GCC	MSVC
+Primary OS	macOS (default), Linux, Windows	Linux (default), all others	Windows (default)
+Error Messages	Generally considered the clearest and most helpful.	Improved over time, but can be verbose/complex.	Clear, but focused on Windows-specific issues.
+Architecture	Modular (Frontend/LLVM IR/Backend). Easier to integrate custom passes.	Monolithic design.	Proprietary, closed source design.
+License	Apache 2.0 (more permissive)	GPL (stricter "copyleft")	Proprietary
+
+For most modern cross-platform development, the choice comes down to personal preference or project requirements between Clang and GCC, as both support the latest C++ standards and generate highly optimized code.
+
+lang -S -emit-llvm -Xclang -no-opaque-pointers preamble.c -o preamble.ll
+
+error: unknown argument: '-no-opaque-pointers'
+
+The error error: unknown argument: '-no-opaque-pointers' indicates that the version of Clang you are using is too new and has removed the -no-opaque-pointers flag.
+
+This flag was used to revert to an older style of LLVM IR pointer (explicitly typed), but the new opaque pointer format is now the default and only option in recent Clang/LLVM versions (starting around LLVM 15/16).
+
+💡 How to Fix It
+
+To fix your command and generate the LLVM IR, simply remove the outdated flag:
+Bash
+
+clang -S -emit-llvm preamble.c -o preamble.ll
+
+Explanation of the Change
+
+    The original command was: clang -S -emit-llvm -Xclang -no-opaque-pointers preamble.c -o preamble.ll
+
+    The problematic option was: -Xclang -no-opaque-pointers
+
+    The fix: The compiler now assumes and requires the opaque pointer format. You no longer need a special flag to disable the newer feature, as the old feature has been removed.
+
+The simplified command will correctly generate the LLVM Intermediate Representation (IR) file, preamble.ll, using modern opaque pointers. If you are using this file with external tools, make sure those tools are also compatible with LLVM IR versions that use opaque pointers.
+
+i want ot do it without opaque opinters
+
+If you must generate LLVM IR without opaque pointers, you'll need to use an older version of the Clang/LLVM toolchain that still supported the -no-opaque-pointers flag.
+
+The opaque pointer change was fully implemented around LLVM version 16, so you need a version prior to that, such as LLVM 14 or 15.
+
+⬇️ Option 1: Downgrade Your Clang/LLVM Version
+
+The most reliable way to execute your original command is to use a compiler version that still recognizes the flag.
+
+    Uninstall your current Clang/LLVM version.
+
+    Install an older version, such as Clang 15 or Clang 14. These versions still offered the flag as a compatibility option.
+
+Once you have the older version installed and it's set as your default or accessible via its specific binary name (e.g., clang-14), your original command will work:
+Bash
+
+clang-14 -S -emit-llvm -Xclang -no-opaque-pointers preamble.c -o preamble.ll
+
+📦 Option 2: Use a Docker Container
+
+If you don't want to change your system's compiler, you can use Docker to run the compilation in an isolated environment with a specific, older LLVM version.
+
+    Install Docker on your system.
+
+    Run a container based on an older OS or toolchain image. For example, using a container with LLVM 14:
+    Bash
+
+    docker run --rm -v $(pwd):/src llvm/llvm:14.0.0-ubuntu-20.04 \
+    clang -S -emit-llvm -Xclang -no-opaque-pointers /src/preamble.c -o /src/preamble.ll
+
+        This mounts your current directory ($(pwd)) to the container's /src directory.
+
+        It then executes the command inside the container using the Clang 14 version.
+
+        The resulting preamble.ll file will appear in your current directory.
+
+⚠️ Why This is Necessary
+
+The LLVM community has removed support for non-opaque (explicitly typed) pointers because the new opaque pointer format:
+
+    Simplifies the LLVM Intermediate Representation (IR).
+
+    Reduces the number of necessary type checks.
+
+    Improves the efficiency of optimizations.
+
+Staying with non-opaque pointers is usually only required if you are using a legacy LLVM tool (e.g., a custom analysis pass or an older teaching tool) that hasn't been updated to handle the modern IR format.
+
+how to downgrade
+
+To generate LLVM IR without opaque pointers, you need to downgrade your Clang/LLVM toolchain to a version that still supports the -no-opaque-pointers flag, such as LLVM 14 or LLVM 15.
+
+The specific steps to downgrade depend on your operating system and how you initially installed Clang.
+
+🐧 Linux (Debian/Ubuntu) Downgrade Steps
+
+For Debian-based systems (like Ubuntu), the LLVM project provides an official repository that includes packages for older versions.
+
+    Use the LLVM Install Script to Add the Repository: This script handles adding the official LLVM APT repository, which contains multiple versions.
+
+Bash
+
+wget https://apt.llvm.org/llvm.sh
+chmod +x llvm.sh
+
+Install a Specific Older Version (e.g., Clang 15 or 14): You can specify the version number to install. Clang 15 is generally the last version to support the non-opaque pointer flag.
+
+Bash
+
+# Replace '15' with the specific older version you need (e.g., 14 or 15)
+sudo ./llvm.sh 15
+
+This installs the compiler binary as clang-15.
+
+Run the Command with the Specific Binary: After installing, use the versioned binary instead of the generic clang to ensure you use the older compiler.
+Bash
+
+    # Use clang-15 which still supports the flag
+    clang-15 -S -emit-llvm -Xclang -no-opaque-pointers preamble.c -o preamble.ll
+
+🍎 macOS Downgrade Steps (using Homebrew)
+
+If you use Homebrew on macOS, you can install specific, older versions of LLVM.
+
+    Tap the Homebrew Core Repository History: This makes older versions (formulae) accessible.
+
+    Install the Older LLVM Version (e.g., LLVM 14 or 15): Homebrew may keep older versions available with an @ suffix. Check the Homebrew Formulae site for the exact name, which is often llvm@15 or similar.
+    Bash
+
+# Install a specific older version, like LLVM 15
+brew install llvm@15
+
+Run the Command with the New Path: Homebrew installs versioned packages in a non-standard location. You'll need to use the full path or temporarily add it to your PATH.
+Bash
+
+    # Get the installation path for Clang 15
+    LLVM_PATH=$(brew --prefix llvm@15)
+
+    # Run the command using the specific clang binary
+    $LLVM_PATH/bin/clang -S -emit-llvm -Xclang -no-opaque-pointers preamble.c -o preamble.ll
+
+🪟 Windows Downgrade Steps
+
+    Download the Older Installer: Go to the official LLVM Releases page and find the installer (.exe) for an older version, such as LLVM 15.0.7 or LLVM 14.0.6.
+
+    Install to a Separate Directory: When running the installer, choose a specific, non-default installation directory (e.g., C:\Program Files\LLVM-15).
+
+    Run the Command from the Specific Directory: You'll need to navigate to that version's bin folder and run the command, or temporarily update your environment's PATH variable to point to the older version's bin directory.
+    DOS
+
+    "C:\Program Files\LLVM-15\bin\clang" -S -emit-llvm -Xclang -no-opaque-pointers preamble.c -o preamble.ll
+
+
+Your USNA chats aren’t used to improve our models. Gemini can make mistakes, so double-check it. Your privacy & Gemini Opens in a new window

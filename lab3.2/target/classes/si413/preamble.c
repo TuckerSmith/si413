@@ -45,3 +45,18 @@ bool string_less(const char* lhs, const char* rhs) {
 bool string_contains(const char* lhs, const char* rhs) {
   return (strstr(lhs, rhs) != NULL);
 }
+
+char* bool_to_string(bool b) {
+  // Allocate space for "True" or "False" plus the null terminator.
+  // "False" has 5 characters + \0 = 6 bytes.
+  
+  if (b) {
+    char* result = malloc(5); // "True" + \0
+    strcpy(result, "True");
+    return result;
+  } else {
+    char* result = malloc(6); // "False" + \0
+    strcpy(result, "False");
+    return result;
+  }
+}

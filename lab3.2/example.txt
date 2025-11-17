@@ -1,0 +1,14 @@
+chat [Hey, what's your name?]
+
+name ! in @ Get user input
+chat [Analyzing name...]
+
+@ Check for equality: name == "hunter"
+is_hunter ! name ? [hunter]
+
+gvn is is_hunter !
+    chat [wow! it is such an honor to meet you. I love you<3]
+!
+instd !
+    chat [K. Nice to meet you.]
+!

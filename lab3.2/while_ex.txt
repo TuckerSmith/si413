@@ -1,0 +1,10 @@
+isdone!1
+gvn is isdone ! chat [hello] ! instd ! chat [olleh] !
+slngs is isdone ! 
+    chat is isdone 
+    
+    isdone!0
+    chat is isdone
+
+    chat [hello ] + [world] + is isdone
+!

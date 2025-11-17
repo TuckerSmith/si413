@@ -1,0 +1,3 @@
+sss ! [olleh]
+boolval!1
+gvn is boolval ! chat [one] + [two] + [three] + sss !
