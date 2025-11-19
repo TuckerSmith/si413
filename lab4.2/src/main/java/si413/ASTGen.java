@@ -98,12 +98,14 @@ public class ASTGen {
                 stlVis.visit(ctx.bracket()));
         }
 
+        /*
         @Override
         public Stmt visitFUNCStat(ParseRules.FUNCStatContext ctx){
             return new Stmt.FUNCStat(
                 // danger danger warning warning i put this here and don't know what to doooooo
             )
         }
+        */
     }
 
     private class ExprVisitor extends Visitor<Expr> {
