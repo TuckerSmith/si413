@@ -63,4 +63,27 @@ public interface Stmt {
             }
         }
     }
+
+    record FUNCStat(String name, List<String> params, Inner body) implements Stmt {
+        @Override
+        public void exec(Interpreter interp) {
+            interp.execFUNCStat(this); 
+        }
+    }
+
+    record FUNCVOIDStat(String name, Inner body) implements Stmt {
+        @Override
+        public void exec(Interpreter interp) {
+            interp.execFUNCVOIDStat(this);
+        }
+    }
+
+    record FunctionCallStmt(String name, List<Expr> args) implements Stmt {
+        @Override
+        public void exec(Interpreter interp) {
+            interp.evalFuncCall(name, args); 
+        }
+    }
 }
+
+

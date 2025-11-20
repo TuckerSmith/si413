@@ -98,14 +98,39 @@ public class ASTGen {
                 stlVis.visit(ctx.bracket()));
         }
 
-        /*
+        
         @Override
         public Stmt visitFUNCStat(ParseRules.FUNCStatContext ctx){
+            String name = ctx.ID().getText();
+
+            List<String> params = new ArrayList<>();
+
+            ParseRules.ArgumentsContext args = ctx.arguments();
+
+            if (args != null) {
+                // First parameter
+                params.add(args.ID().getText()); 
+                
+                // Loop through the rest of the parameters using argumentsRepeatContext
+                ParseRules.ArgumentsRepeatContext repeatCtx = args.argumentsRepeat();
+                while (repeatCtx instanceof ParseRules.ArgRepeatContext) {
+                    ParseRules.ArgRepeatContext argRepeat = (ParseRules.ArgRepeatContext) repeatCtx;
+                    params.add(argRepeat.ID().getText());
+                    repeatCtx = argRepeat.argumentsRepeat(); // Move to the next repeat
+                }
+            }
+    
+            // 3. Get the function body (the 'inner' rule within 'bracket')
+            ParseRules.InnerContext innerCtx = ctx.bracket().inner();
+            
+            // Visit the body to get the Inner (a list of statements) AST node
+            Stmt.Inner body = (Stmt.Inner) visit(innerCtx);
+
             return new Stmt.FUNCStat(
-                // danger danger warning warning i put this here and don't know what to doooooo
+                name, params, body// danger danger warning warning i put this here and don't know what to doooooo
             )
         }
-        */
+        /**/
     }
 
     private class ExprVisitor extends Visitor<Expr> {

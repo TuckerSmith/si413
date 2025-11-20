@@ -1,8 +1,8 @@
 # SI413 Lab 4.2: Interpreter for functional language
 
-your_name: BLAH BLAH
+your_name: Tucker Smith
 
-your_alpha: BLAH
+your_alpha: 265922
 
 used_ai: Y # remember to turn in an aichat.md file as well
 
@@ -18,4 +18,6 @@ collaboration: |
 
 # something else your instructor should know?
 any_other_comments_for_me: |
-    NONE
+    - Switched to a fresh vm and spent some time debugging java version and stuff
+    - Made progress in understanding the language
+    - Made necessary updates to Stmt.java, Frame.java, and ASTGen.java
