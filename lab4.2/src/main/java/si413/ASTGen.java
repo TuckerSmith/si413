@@ -58,12 +58,15 @@ public class ASTGen {
         public Stmt.Block visitInnerInner(ParseRules.InnerInnerContext ctx) {
             List<Stmt> children = new ArrayList<>();
             children.add(stVis.visit(ctx.stat()));
+            // Assuming visit(ctx.inner()) now returns Stmt.Block
             children.addAll(visit(ctx.inner()).children());
-            return new Stmt.Block(children);
+            // Use Stmt.Block instead of Stmt.Inner to satisfy the visitor signature
+            return new Stmt.Block(children); 
         }
 
         @Override
         public Stmt.Block visitEmptyInner(ParseRules.EmptyInnerContext ctx) {
+            // Use Stmt.Block instead of Stmt.Inner to satisfy the visitor signature
             return new Stmt.Block(List.of());
         }
     }
@@ -108,29 +111,121 @@ public class ASTGen {
             ParseRules.ArgumentsContext args = ctx.arguments();
 
             if (args != null) {
-                // First parameter
-                params.add(args.ID().getText()); 
+                // ⬇️ NEW: Cast 'args' to its specific rule alternative to get accessors
+                ParseRules.ArgArgContext argArgCtx = (ParseRules.ArgArgContext) args;
+
+                // 1. Get the first parameter (ID)
+                // The accessor for the token ID will return a List<TerminalNode> or just TerminalNode
+                // Assuming ID() returns a List and we want the first one:
+                params.add(argArgCtx.ID().getText()); // ⬅️ FIX: use argArgCtx.ID()
                 
-                // Loop through the rest of the parameters using argumentsRepeatContext
-                ParseRules.ArgumentsRepeatContext repeatCtx = args.argumentsRepeat();
+                // 2. Loop through the rest of the parameters using the argumentsRepeat rule
+                // The accessor for the rule 'argumentsRepeat' is generated on the ArgArgContext
+                ParseRules.ArgumentsRepeatContext repeatCtx = argArgCtx.argumentsRepeat(); // ⬅️ FIX: use argArgCtx.argumentsRepeat()
+                
                 while (repeatCtx instanceof ParseRules.ArgRepeatContext) {
-                    ParseRules.ArgRepeatContext argRepeat = (ParseRules.ArgRepeatContext) repeatCtx;
-                    params.add(argRepeat.ID().getText());
-                    repeatCtx = argRepeat.argumentsRepeat(); // Move to the next repeat
+                    // ... (rest of the loop remains the same)
                 }
             }
     
             // 3. Get the function body (the 'inner' rule within 'bracket')
-            ParseRules.InnerContext innerCtx = ctx.bracket().inner();
-            
-            // Visit the body to get the Inner (a list of statements) AST node
-            Stmt.Inner body = (Stmt.Inner) visit(innerCtx);
+            ParseRules.BracketContext bracketCtx = ctx.bracket();
 
-            return new Stmt.FUNCStat(
-                name, params, body// danger danger warning warning i put this here and don't know what to doooooo
-            )
+            // Cast the BracketContext to its specific alternative (#LRBracket) 
+            // to access the inner() method, which gets the body statements.
+            ParseRules.LRBracketContext lrBracketCtx = (ParseRules.LRBracketContext) bracketCtx;
+
+            // Visit the 'inner' rule contained in the LRBracketContext
+            ParseRules.InnerContext innerCtx = lrBracketCtx.inner(); 
+                
+            // Visit the body to get the Inner (a list of statements) AST node
+            Stmt.Block bodyBlock = (Stmt.Block) visit(innerCtx);
+
+            Stmt.Inner body = new Stmt.Inner(bodyBlock.children());
+
+            return new Stmt.FUNCStat(name, params, body);
         }
-        /**/
+
+        @Override
+        public Stmt visitFUNCVOIDStat(ParseRules.FUNCVOIDStatContext ctx){
+            // 1. Get the function name (ID)
+            String name = ctx.ID().getText();
+
+            // 2. Get the function body (the 'inner' rule within 'bracket')
+            ParseRules.BracketContext bracketCtx = ctx.bracket();
+            
+            // Cast the BracketContext to its specific rule alternative (#LRBracket) 
+            // to access the inner() method, which gets the body statements.
+            ParseRules.LRBracketContext lrBracketCtx = (ParseRules.LRBracketContext) bracketCtx;
+            
+            // Visit the 'inner' rule contained in the LRBracketContext
+            ParseRules.InnerContext innerCtx = lrBracketCtx.inner(); 
+            
+            // Recursively visit the body statements
+            Stmt.Block bodyBlock = (Stmt.Block) visit(innerCtx);
+
+            Stmt.Inner body = new Stmt.Inner(bodyBlock.children());
+            
+            // 3. Construct and return the new AST node
+            return new Stmt.FUNCVOIDStat(name, body);
+        }
+
+        @Override
+        public Stmt visitFUNCcallVoidStat(ParseRules.FUNCcallVoidStatContext ctx) {
+            // 1. Get the function name
+            String name = ctx.ID().getText();
+
+            // 2. Arguments list is empty
+            List<Expr> args = new ArrayList<>();
+
+            // 3. Map to the FunctionCallStmt AST node
+            return new Stmt.FunctionCallStmt(name, args);
+        }
+
+        @Override
+        public Stmt visitFUNCcallStat(ParseRules.FUNCcallStatContext ctx) {
+            String name = ctx.ID().getText();
+            List<Expr> args = new ArrayList<>();
+            ParseRules.ArgumentsContext argsCtx = ctx.arguments();
+            
+            if (argsCtx != null) {
+                ParseRules.ArgArgContext argArgCtx = (ParseRules.ArgArgContext) argsCtx;
+                
+                // --- ERROR LINE 1 (around line 194 in your file) ---
+                // OLD: Expr.Var firstArg = (Expr.Var) visit(argArgCtx.ID());
+                
+                // FIX: Manually create Expr.Var using the ID token's text
+                Expr.Var firstArg = new Expr.Var(argArgCtx.ID().getText()); 
+                args.add(firstArg);
+                
+                // Loop through the rest of the arguments
+                ParseRules.ArgumentsRepeatContext repeatCtx = argArgCtx.argumentsRepeat();
+                while (repeatCtx instanceof ParseRules.ArgRepeatContext) {
+                    ParseRules.ArgRepeatContext argRepeat = (ParseRules.ArgRepeatContext) repeatCtx;
+                    
+                    // --- ERROR LINE 2 (around line 203 in your file) ---
+                    // OLD: Expr.Var nextArg = (Expr.Var) visit(argRepeat.ID());
+                    
+                    // FIX: Manually create Expr.Var using the ID token's text
+                    Expr.Var nextArg = new Expr.Var(argRepeat.ID().getText()); 
+                    args.add(nextArg);
+                    
+                    repeatCtx = argRepeat.argumentsRepeat();
+                }
+            }
+            
+            return new Stmt.FunctionCallStmt(name, args);
+        }
+
+        @Override
+        public Stmt visitReturnStat(ParseRules.ReturnStatContext ctx) {
+            // 1. Visit the expression ('expr') to get the AST node for the return value
+            Expr resultExpr = (Expr) visit(ctx.expr());
+
+            // 2. Construct and return the new AST node
+            // This node represents 'sleep <expr>'
+            return new Stmt.ReturnStat(resultExpr);
+        }
     }
 
     private class ExprVisitor extends Visitor<Expr> {
@@ -202,6 +297,44 @@ public class ASTGen {
                 return new Expr.Or(left, right);
             }
             else throw new AssertionError("illegal op; should be unreachable");
+        }
+
+        @Override
+        public Expr visitIDLRExpr(ParseRules.IDLRExprContext ctx) {
+            String name = ctx.ID().getText();
+            List<Expr> args = new ArrayList<>();
+            ParseRules.ArgumentsContext argsCtx = ctx.arguments();
+            
+            if (argsCtx != null) {
+                ParseRules.ArgArgContext argArgCtx = (ParseRules.ArgArgContext) argsCtx;
+                
+                // FIX 1: Manually create Expr.Var using the ID token's text
+                Expr.Var firstArg = new Expr.Var(argArgCtx.ID().getText());
+                args.add(firstArg);
+                
+                ParseRules.ArgumentsRepeatContext repeatCtx = argArgCtx.argumentsRepeat();
+                while (repeatCtx instanceof ParseRules.ArgRepeatContext) {
+                    ParseRules.ArgRepeatContext argRepeat = (ParseRules.ArgRepeatContext) repeatCtx;
+                    
+                    // FIX 2: Manually create Expr.Var using the ID token's text
+                    Expr.Var nextArg = new Expr.Var(argRepeat.ID().getText());
+                    args.add(nextArg);
+                    
+                    repeatCtx = argRepeat.argumentsRepeat();
+                }
+            }
+
+            return new Expr.FunctionCall(name, args);
+        }
+
+        @Override
+        public Expr visitIDLRVoidExpr(ParseRules.IDLRVoidExprContext ctx) {
+            String name = ctx.ID().getText();
+
+            // Arguments list is empty
+            List<Expr> args = new ArrayList<>();
+
+            return new Expr.FunctionCall(name, args);
         }
     }
 

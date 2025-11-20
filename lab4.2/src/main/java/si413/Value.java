@@ -1,4 +1,6 @@
 package si413;
+import java.util.List;
+import si413.Frame;
 
 /** Holds a generic Value that can be either a string or a boolean.
  * To make a string, create an instance of Value.Str("like this").
@@ -29,6 +31,17 @@ public interface Value {
         @Override
         public String toString() {
             return value ? "True" : "False";
+        }
+    }
+    
+    record Closure(String name, List<String> params, Stmt.Inner body, Frame env) implements Value {
+        
+        // Closures can't be automatically converted to strings or booleans, 
+        // so they should trigger an error if a user tries to print them directly
+        // or use them in a condition.
+        @Override
+        public String toString() {
+            return String.format("<Closure %s with %d params>", name, params.size());
         }
     }
 }

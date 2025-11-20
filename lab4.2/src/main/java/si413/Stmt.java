@@ -84,6 +84,27 @@ public interface Stmt {
             interp.evalFuncCall(name, args); 
         }
     }
+
+    record ReturnStat(Expr result) implements Stmt {
+        @Override
+        public void exec(Interpreter interp) {
+            // Implementation Note: This must evaluate the result and use an exception 
+            // or a special mechanism to unwind the call stack back to the caller frame.
+            // It signals the end of the current function's execution.
+            interp.execReturnStat(this);
+        }
+
+        
+    }
+
+    record Inner(List<Stmt> children) implements Stmt {
+        @Override
+        public void exec(Interpreter interp) {
+            for (Stmt child : children) {
+                child.exec(interp);
+            }
+        }
+    }
 }
 
 

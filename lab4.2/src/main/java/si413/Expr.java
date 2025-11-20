@@ -106,4 +106,13 @@ public interface Expr {
             return new Value.Bool(!child.eval(interp).bool());
         }
     }
+
+    record FunctionCall(String name, List<Expr> args) implements Expr {
+        @Override
+        public Value eval(Interpreter interp) {
+            // This delegates the call logic to the interpreter
+            // (which must handle argument evaluation, frame creation, execution, and return value).
+            return interp.evalFuncCall(name, args);
+        }
+    }
 }

@@ -8,6 +8,8 @@ import java.util.Scanner;
 import java.nio.file.Path;
 import java.io.IOException;
 import org.antlr.v4.runtime.TokenStream;
+import java.util.List;
+import java.util.ArrayList;
 
 /** AST-based Interpreter.
  * This class holds variables to manage the state of a running
@@ -24,11 +26,15 @@ public class Interpreter {
 
     private Frame globalFrame;
 
+    private Frame currentEnv;
+
     public Interpreter() {
         globalFrame = new Frame();
     }
 
     public Frame getEnv() { return globalFrame; }
+
+    public void setEnv(Frame newEnv) { currentEnv = newEnv; }
 
     public String readInputLine() {
         return stdin.nextLine();
@@ -59,5 +65,109 @@ public class Interpreter {
         ParseRules.ProgContext ptreeRoot = parse(tokens);
         Stmt astRoot = ASTGen.gen(ptreeRoot);
         astRoot.exec(new Interpreter());
+    }
+
+    /** Executes a function definition statement (with parameters). */
+    public void execFUNCStat(Stmt.FUNCStat stat) {
+        // 1. Get the current environment (Frame).
+        Frame capturedEnv = getEnv(); 
+
+        // 2. Create the Closure value.
+        Value.Closure closure = new Value.Closure(
+            stat.name(),       
+            stat.params(),    
+            stat.body(),       
+            capturedEnv      
+        );
+
+        // 3. Bind the Closure to the function name in the current environment.
+        getEnv().assign(stat.name(), closure); 
+    }
+
+    public void execFUNCVOIDStat(Stmt.FUNCVOIDStat stat) {
+        // 1. Get the current environment (Frame) 
+        Frame capturedEnv = getEnv(); 
+
+        // 2. Create the Closure value with an empty parameter list.
+        Value.Closure closure = new Value.Closure(
+            stat.name(),
+            new ArrayList<String>(), // Now ArrayList is imported
+            stat.body(),
+            capturedEnv  // capturedEnv is now defined
+        );
+
+        // 3. Bind the Closure to the function name in the current environment.
+        getEnv().assign(stat.name(), closure);
+    }
+
+    /**
+     * Evaluates a function call expression or executes a function call statement.
+     * Returns the function's return value (or a default value if used as a statement).
+     */
+    public Value evalFuncCall(String name, List<Expr> args) {
+        // 1. Function Lookup and Validation (remains the same)
+        Value funcVal = getEnv().lookup(name);
+        
+        if (!(funcVal instanceof Value.Closure closure)) {
+            return Errors.error(String.format("Runtime Error: '%s' is not a callable function.", name));
+        }
+
+        if (args.size() != closure.params().size()) {
+            return Errors.error(String.format(
+                "Runtime Error: Function '%s' expected %d arguments but received %d.",
+                name, closure.params().size(), args.size()
+            ));
+        }
+
+        // 2. Evaluate arguments (remains the same)
+        List<Value> argValues = new ArrayList<>();
+        for (Expr argExpr : args) {
+            argValues.add(argExpr.eval(this));
+        }
+
+        // 3. Create the Call Frame (parent is the closure's captured environment)
+        Frame callFrame = new Frame(closure.env());
+        
+        // Bind arguments to parameters in the new frame
+        for (int i = 0; i < closure.params().size(); i++) {
+            String paramName = closure.params().get(i);
+            Value argValue = argValues.get(i);
+            callFrame.assign(paramName, argValue);
+        }
+        
+        // --- Environment SWAP and Execution ---
+        
+        // Save the environment of the caller
+        Frame savedEnv = getEnv(); 
+        Value returnValue = null;
+        
+        try {
+            // Set the current environment to the function's call frame
+            setEnv(callFrame); // Assuming you have a setEnv(Frame) method
+            
+            // Execute the function body
+            closure.body().exec(this);
+            
+            // If execution finishes without a 'sleep' (return), implicitly return Bool(false)
+            returnValue = new Value.Bool(false); 
+            
+        } catch (ReturnException e) {
+            // Function returned a value using 'sleep expr'
+            returnValue = e.returnValue;
+            
+        } finally {
+            // 4. Restore the caller's environment, even if an exception occurred!
+            setEnv(savedEnv);
+        }
+        
+        return returnValue;
+    }
+
+    public void execReturnStat(Stmt.ReturnStat stat) {
+        // 1. Evaluate the expression to get the return value
+        Value result = stat.result().eval(this);
+
+        // 2. Throw the exception to terminate the function execution
+        throw new ReturnException(result);
     }
 }
