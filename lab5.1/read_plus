@@ -1,0 +1,22 @@
+# Read and plus program in ddcw
+
+       bawk "Enter a filename" bawk
+   fname -> stuffing           <- fname
+contents -> read(fname)        <- contents
+
+    as -> "A" <- as
+acount -> "0" <- acount
+   pow -> "1" <- pow
+
+w (contents ? as) {
+    as -> as + "A"          <- as
+   one -> "1"               <- one
+acount -> plus(acount, one) <- acount
+   pow -> plus(pow, pow)    <- pow
+}
+
+bawk "There are " + acount + " As" bawk
+bawk "2^" + acount + " = " + pow   bawk
+#
+#display.S[There are ] + acount + S[ As]
+#display.S[2^]+acount+S[ = ]+pow
