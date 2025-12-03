@@ -1,0 +1,24 @@
+f table_tracker(name) {
+    # Variable in the outer function's scope
+    restaurant -> "The Golden Turkey" <- restaurant 
+    
+    f order(food) {
+        # Lexical access: uses 'restaurant' from the parent scope
+        bawk restaurant + " welcomes Table " + name + " ordering " + food bawk
+        
+        # Simple return to avoid complex loop logic
+        sleep restaurant
+    }
+    
+    # Returns the inner function (Closure)
+    sleep order
+}
+
+# Main Execution
+table1param -> "CS Profs" <- table1param
+table1 -> table_tracker(table1param) <- table1
+
+# Call the inner function returned by table_tracker
+result -> table1("Tteokbokki") <- result
+
+bawk "Final result: " + result bawk

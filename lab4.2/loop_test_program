@@ -1,0 +1,20 @@
+# 1. Initialize Control Variable
+# "a" is lexicographically less than "b"
+flag -> "a" <- flag
+
+# 2. String to print
+message -> "Loop Executed" <- message
+
+bawk "--- Start Test ---" bawk
+
+# WHILE loop: Run as long as flag is less than "b" (which it is initially)
+w (flag < "b") {
+    # 1. Print the success message (Tests Block execution)
+    bawk message bawk
+    
+    # 2. Update logic: Change the flag to terminate the loop on the next check.
+    # The condition "z" < "b" is False, thus terminating the loop.
+    flag -> "z" <- flag
+}
+
+bawk "--- End Test ---" bawk

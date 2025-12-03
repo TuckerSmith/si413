@@ -30,9 +30,10 @@ public class Interpreter {
 
     public Interpreter() {
         globalFrame = new Frame();
+        this.currentEnv = this.globalFrame;
     }
 
-    public Frame getEnv() { return globalFrame; }
+    public Frame getEnv() { return currentEnv; }
 
     public void setEnv(Frame newEnv) { currentEnv = newEnv; }
 

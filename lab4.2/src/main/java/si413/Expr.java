@@ -85,18 +85,33 @@ public interface Expr {
     record And(Expr lhs, Expr rhs) implements Expr {
         @Override
         public Value eval(Interpreter interp) {
-            Value left = lhs.eval(interp);
-            if (left.bool()) return rhs.eval(interp);
-            else return left;
+            // Evaluate LHS first
+            boolean left_val = lhs.eval(interp).bool();
+
+            // If LHS is False, return False immediately (short-circuit)
+            if (!left_val) {
+                return new Value.Bool(false); 
+            }
+
+            // If LHS is True, evaluate and return RHS.
+            // The RHS evaluation must yield a boolean result.
+            return rhs.eval(interp);
         }
     }
 
     record Or(Expr lhs, Expr rhs) implements Expr {
         @Override
         public Value eval(Interpreter interp) {
-            Value left = lhs.eval(interp);
-            if (left.bool()) return left;
-            else return rhs.eval(interp);
+            // Evaluate LHS first
+            boolean left_val = lhs.eval(interp).bool();
+
+            // If LHS is True, return True immediately (short-circuit)
+            if (left_val) {
+                return new Value.Bool(true);
+            }
+
+            // If LHS is False, evaluate and return RHS.
+            return rhs.eval(interp);
         }
     }
 

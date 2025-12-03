@@ -111,20 +111,31 @@ public class ASTGen {
             ParseRules.ArgumentsContext args = ctx.arguments();
 
             if (args != null) {
-                // ⬇️ NEW: Cast 'args' to its specific rule alternative to get accessors
+                // ⬇️ Cast 'args' to its specific rule alternative
                 ParseRules.ArgArgContext argArgCtx = (ParseRules.ArgArgContext) args;
 
-                // 1. Get the first parameter (ID)
-                // The accessor for the token ID will return a List<TerminalNode> or just TerminalNode
-                // Assuming ID() returns a List and we want the first one:
-                params.add(argArgCtx.ID().getText()); // ⬅️ FIX: use argArgCtx.ID()
+                // 1. Get the first parameter ID
+                // FIX: We visit the 'expr' to ensure it creates an Expr.Var node, then extract the name.
+                Expr argExpr = eVis.visit(argArgCtx.expr());
+                if (!(argExpr instanceof Expr.Var varExpr)) {
+                    // Fail fast if the parameter is not a simple ID (e.g., it's a LITERAL or a CONCAT expression)
+                    return Errors.error(String.format("Function parameter must be a variable name (ID), not an expression. Found: %s", argArgCtx.expr().getText()));
+                }
+                params.add(varExpr.name());
                 
                 // 2. Loop through the rest of the parameters using the argumentsRepeat rule
-                // The accessor for the rule 'argumentsRepeat' is generated on the ArgArgContext
-                ParseRules.ArgumentsRepeatContext repeatCtx = argArgCtx.argumentsRepeat(); // ⬅️ FIX: use argArgCtx.argumentsRepeat()
+                ParseRules.ArgumentsRepeatContext repeatCtx = argArgCtx.argumentsRepeat();
                 
-                while (repeatCtx instanceof ParseRules.ArgRepeatContext) {
-                    // ... (rest of the loop remains the same)
+                while (repeatCtx instanceof ParseRules.ArgRepeatContext argRepeatCtx) {
+                    
+                    // FIX: Ensure the repeated 'expr' is a simple ID.
+                    Expr nextArgExpr = eVis.visit(argRepeatCtx.expr());
+                    if (!(nextArgExpr instanceof Expr.Var nextVarExpr)) {
+                        return Errors.error(String.format("Function parameter must be a variable name (ID), not an expression. Found: %s", argRepeatCtx.expr().getText()));
+                    }
+                    params.add(nextVarExpr.name());
+                    
+                    repeatCtx = argRepeatCtx.argumentsRepeat();
                 }
             }
     
@@ -139,7 +150,7 @@ public class ASTGen {
             ParseRules.InnerContext innerCtx = lrBracketCtx.inner(); 
                 
             // Visit the body to get the Inner (a list of statements) AST node
-            Stmt.Block bodyBlock = (Stmt.Block) visit(innerCtx);
+            Stmt.Block bodyBlock = stlVis.visit(innerCtx);
 
             Stmt.Inner body = new Stmt.Inner(bodyBlock.children());
 
@@ -162,7 +173,7 @@ public class ASTGen {
             ParseRules.InnerContext innerCtx = lrBracketCtx.inner(); 
             
             // Recursively visit the body statements
-            Stmt.Block bodyBlock = (Stmt.Block) visit(innerCtx);
+            Stmt.Block bodyBlock = stlVis.visit(innerCtx);
 
             Stmt.Inner body = new Stmt.Inner(bodyBlock.children());
             
@@ -195,7 +206,7 @@ public class ASTGen {
                 // OLD: Expr.Var firstArg = (Expr.Var) visit(argArgCtx.ID());
                 
                 // FIX: Manually create Expr.Var using the ID token's text
-                Expr.Var firstArg = new Expr.Var(argArgCtx.ID().getText()); 
+                Expr firstArg = eVis.visit(argArgCtx.expr());
                 args.add(firstArg);
                 
                 // Loop through the rest of the arguments
@@ -207,7 +218,7 @@ public class ASTGen {
                     // OLD: Expr.Var nextArg = (Expr.Var) visit(argRepeat.ID());
                     
                     // FIX: Manually create Expr.Var using the ID token's text
-                    Expr.Var nextArg = new Expr.Var(argRepeat.ID().getText()); 
+                    Expr nextArg = eVis.visit(argRepeat.expr());
                     args.add(nextArg);
                     
                     repeatCtx = argRepeat.argumentsRepeat();
@@ -220,7 +231,7 @@ public class ASTGen {
         @Override
         public Stmt visitReturnStat(ParseRules.ReturnStatContext ctx) {
             // 1. Visit the expression ('expr') to get the AST node for the return value
-            Expr resultExpr = (Expr) visit(ctx.expr());
+            Expr resultExpr = eVis.visit(ctx.expr());
 
             // 2. Construct and return the new AST node
             // This node represents 'sleep <expr>'
@@ -309,7 +320,7 @@ public class ASTGen {
                 ParseRules.ArgArgContext argArgCtx = (ParseRules.ArgArgContext) argsCtx;
                 
                 // FIX 1: Manually create Expr.Var using the ID token's text
-                Expr.Var firstArg = new Expr.Var(argArgCtx.ID().getText());
+                Expr firstArg = eVis.visit(argArgCtx.expr());
                 args.add(firstArg);
                 
                 ParseRules.ArgumentsRepeatContext repeatCtx = argArgCtx.argumentsRepeat();
@@ -317,7 +328,7 @@ public class ASTGen {
                     ParseRules.ArgRepeatContext argRepeat = (ParseRules.ArgRepeatContext) repeatCtx;
                     
                     // FIX 2: Manually create Expr.Var using the ID token's text
-                    Expr.Var nextArg = new Expr.Var(argRepeat.ID().getText());
+                    Expr nextArg = eVis.visit(argRepeat.expr());
                     args.add(nextArg);
                     
                     repeatCtx = argRepeat.argumentsRepeat();

@@ -29,8 +29,14 @@ public interface Value {
         public boolean bool() { return value; }
 
         @Override
+        public String str() {
+            // FIX: Return the string representation for concatenation/printing
+            return toString();
+        }
+
+        @Override
         public String toString() {
-            return value ? "True" : "False";
+            return value ? "Cooked" : "Uncooked";
         }
     }
     

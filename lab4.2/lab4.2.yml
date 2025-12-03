@@ -10,7 +10,11 @@ language_name: ddcw
 
 # leave this as NONE for your initial submission
 changes_on_resubmit: |
-    NONE
+    - fixed bugs with string comparison
+    - implemented functions definitions and calls
+    - implemented parent frames, lexical scoping
+    - lots of debugging with return types in ASTGen.java
+    - Support for closures/frames 
 
 # describe any collaboration or help you got from classmates
 collaboration: |

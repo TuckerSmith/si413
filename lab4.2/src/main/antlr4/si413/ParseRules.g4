@@ -21,11 +21,11 @@ stat
   ;
 
 arguments
-  : ID argumentsRepeat #ArgArg
+  : expr argumentsRepeat #ArgArg
   ;
 
 argumentsRepeat
-  : COMMA ID argumentsRepeat #ArgRepeat
+  : COMMA expr argumentsRepeat #ArgRepeat
   | #Emptyargument
   ;
 

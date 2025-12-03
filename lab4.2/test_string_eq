@@ -1,0 +1,25 @@
+# String_eq function (from original program)
+f string_eq(s1, s2) {
+    # Checks if s1 is NOT less than s2 AND s2 is NOT less than s1
+    sleep !(s1 < s2) & !(s2 < s1)
+}
+
+# Main Execution
+input1 -> "Uncooked" <- input1
+input2 -> "Uncooked" <- input2
+input3 -> "Cooked" <- input3
+
+# Test 1: Should be True (Cooked)
+result1 -> string_eq(input1, input2) <- result1
+bawk "Test 1 (True): " + result1 bawk
+
+# Test 2: Should be False (Uncooked)
+result2 -> string_eq(input1, input3) <- result2
+bawk "Test 2 (False): " + result2 bawk
+
+# Test 3: Conditional assignment based on equality
+flag -> Uncooked <- flag
+carve (result1) {
+    flag -> Cooked <- flag
+}
+bawk "Flag after test: " + flag bawk

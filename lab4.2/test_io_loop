@@ -1,0 +1,27 @@
+# Initialize the loop control variable
+done -> Uncooked <- done 
+
+bawk "--- Enter loop: MUST type Uncooked to exit ---" bawk
+
+# Loop runs while 'done' is Uncooked (TRUE)
+w (!done){ 
+    bawk "What do you want (Type Uncooked):" bawk
+    
+    # HANG/Input point
+    food -> stuffing <- food 
+    
+    # Check if input equals the exit value ("Uncooked")
+    result -> !(food < done) & !(done < food) <- result 
+    
+    carve (result) {
+        # Exit condition met: change done to Cooked
+        done -> Cooked <- done 
+        bawk "Exit string received. Exiting loop." bawk
+    }
+    carve (!result){
+        # Loop continues
+        bawk "Received: " + food + ". Loop continues." bawk
+    }
+}
+
+bawk "--- Loop Terminated ---" bawk

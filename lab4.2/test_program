@@ -1,0 +1,28 @@
+# 1. Global Variable (Lexical Scope Test)
+gravy -> "Yummy " <- gravy
+
+# 2. Function Definition (Declaration Test)
+f feast (turkey_weight) {
+    # Function body executes: gravy + turkey_weight
+    # gravy is resolved lexically (from the outer scope)
+    food_amount -> gravy + turkey_weight <- food_amount
+    
+    bawk "Total food is: " + food_amount bawk
+    
+    # Return the food amount (Return Test)
+    sleep food_amount
+}
+
+# 3. Execution
+
+# Call the function (Function Call Test)
+# Call 1 (Statement call - return value is ignored)
+feast ("Turkey 1KG")
+
+# Call 2 (Expression call - return value is used)
+result -> feast ("Turkey 5KG") <- result
+
+# Print the returned result
+bawk "Returned result: " + result bawk
+
+# End of program

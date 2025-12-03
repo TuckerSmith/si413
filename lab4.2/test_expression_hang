@@ -1,0 +1,17 @@
+# Main Execution
+t -> Cooked <- t  # True
+is_false -> Uncooked <- is_false # ⬅️ FIX: Change 'f' to 'is_false'
+
+bawk "--- Testing Hang Condition ---" bawk
+
+# Test 1: Simple AND 
+result1 -> t & t <- result1
+bawk "Test 1 (T & T): " + result1 bawk
+
+# Test 2: Complex AND with NOT 
+result2 -> !is_false & !t <- result2 # ⬅️ FIX: Use 'is_false'
+bawk "Test 2 (F & T): " + result2 bawk
+
+# Test 3: The expression structure that caused the original hang, but simplified.
+result3 -> !is_false & !is_false <- result3 # ⬅️ FIX: Use 'is_false'
+bawk "Test 3 (T & T): " + result3 bawk

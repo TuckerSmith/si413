@@ -1,0 +1,17 @@
+# Set up boolean variables
+t -> Cooked <- t
+is_false -> Uncooked <- is_false  
+bawk "--- Testing AND ---" bawk
+
+# Test 1: True AND True = True
+result1 -> t & t <- result1
+bawk "Test 1 (T & T): " + result1 bawk
+
+# Test 2: False AND True = False (Should short-circuit)
+# Must update the reference in the expression too:
+result2 -> is_false & t <- result2 
+bawk "Test 2 (F & T): " + result2 bawk
+
+# Test 3: True AND False = False
+result3 -> t & is_false <- result3 
+bawk "Test 3 (T & F): " + result3 bawk
